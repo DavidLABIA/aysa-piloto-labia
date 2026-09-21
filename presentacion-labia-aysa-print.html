@@ -96,14 +96,14 @@
   .callout .ico { font-size:1.5rem; }
   .callout b { color:var(--txt); }
 
-body { --print:1; background:#06090f; margin:0; padding:0; }
+body { --print:1; background:#06090f; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 html, body { height:auto; overflow:visible; }
 .slide { position:relative; inset:auto; transform:none; opacity:1; pointer-events:none;
   width:100vw; height:100vh; padding:5.5vh 6vw; }
 .slide.active { opacity:1; }
 .pagebreak { break-after:page; }
 .topbar, .btn, .counter, .keys { display:none !important; }
-.bgfx { position:fixed; }
+.bgfx { display:none !important; }
 @page { size:1920px 1080px; margin:0; }
 @media print {
   .slide { width:1920px; height:1080px; padding:66px 110px; page-break-after:always; page-break-inside:avoid; }
