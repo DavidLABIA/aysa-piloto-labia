@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan de trabajo labIA · Aysa — Arquitectura, actividades y roles</title>
+<style>
+  :root {
+    --bg:#070b14; --bg2:#0b1220; --card:#101a2c; --card2:#16233a;
+    --line:#1f3050; --txt:#eaf1fb; --muted:#8ba3c7; --dim:#5c7399;
+    --acc:#2fd0ff; --acc2:#7d8bff; --good:#2fd39a; --warn:#ffc75e; --bad:#ff6b8b;
+    --grad:linear-gradient(135deg,#2fd0ff,#7d8bff);
+    --shadow:0 20px 50px rgba(0,0,0,.45);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body { background:#06090f; color:var(--txt); font-family:'Segoe UI',-apple-system,Roboto,Helvetica,Arial,sans-serif; overflow:hidden; }
+  .bgfx { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .bgfx::before { content:""; position:absolute; inset:0;
+    background-image:linear-gradient(rgba(47,208,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(47,208,255,.05) 1px,transparent 1px);
+    background-size:56px 56px; mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 75%); }
+  .bgfx .glow1 { position:absolute; top:-20%; left:-10%; width:60vw; height:60vw; background:radial-gradient(circle,rgba(47,208,255,.18),transparent 65%); filter:blur(10px); border-radius:50%; }
+  .bgfx .glow2 { position:absolute; bottom:-25%; right:-10%; width:70vw; height:70vw; background:radial-gradient(circle,rgba(125,139,255,.16),transparent 65%); filter:blur(10px); border-radius:50%; }
+
+  .deck { position:relative; z-index:1; height:100vh; width:100%; }
+  .slide { position:absolute; inset:0; padding:5.5vh 6vw; opacity:0; transform:translateX(40px) scale(.985); pointer-events:none;
+    transition:opacity .5s ease, transform .55s cubic-bezier(.16,1,.3,1); overflow:hidden; }
+  .slide.active { opacity:1; transform:none; pointer-events:auto; }
+  .slide.n-enter { transform:translateX(40px) scale(.985); }
+  .slide.p-enter { transform:translateX(-40px) scale(.985); }
+
+  .topbar { position:fixed; top:0; left:0; right:0; z-index:30; display:flex; align-items:center; gap:18px; padding:16px 28px; font-size:.78rem; color:var(--muted); }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.5px; color:var(--txt); }
+  .brand .dot { width:11px; height:11px; border-radius:4px; background:var(--grad); box-shadow:0 0 14px rgba(47,208,255,.7); }
+  .brand .sub { color:var(--dim); font-weight:500; }
+  .rail { flex:1; height:3px; background:var(--line); border-radius:3px; overflow:hidden; }
+  .rail i { display:block; height:100%; background:var(--grad); width:0; transition:width .4s ease; }
+  .stepper { display:flex; gap:4px; }
+  .stepper span { width:4px; height:14px; border-radius:3px; background:var(--line); transition:background .3s; }
+  .stepper span.on { background:var(--acc); }
+
+  .kicker { font-size:.7rem; letter-spacing:2.5px; text-transform:uppercase; color:var(--acc); font-weight:700; margin-bottom:12px; }
+  .kicker.warn { color:var(--warn); }
+  h1 { font-size:clamp(2.4rem,5.4vw,4.2rem); line-height:1.02; font-weight:800; letter-spacing:-1px; }
+  h1 .grad { background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h2 { font-size:clamp(1.6rem,3.2vw,2.6rem); font-weight:800; letter-spacing:-.5px; line-height:1.08; }
+  h3 { font-size:1.05rem; font-weight:700; }
+  p.lead { font-size:clamp(.98rem,1.5vw,1.22rem); color:var(--muted); line-height:1.6; }
+  p.body { font-size:.95rem; color:var(--muted); line-height:1.6; }
+
+  .grid { display:grid; gap:16px; }
+  .cols2 { grid-template-columns:1fr 1fr; }
+  .cols3 { grid-template-columns:repeat(3,1fr); }
+  .cols4 { grid-template-columns:repeat(4,1fr); }
+  .card { background:linear-gradient(160deg,var(--card),var(--bg2)); border:1px solid var(--line); border-radius:16px; padding:18px; box-shadow:var(--shadow); }
+  .card.hover { transition:transform .3s,border-color .3s; }
+  .card.hover:hover { transform:translateY(-6px); border-color:var(--acc); }
+  .num { font-size:1.9rem; font-weight:800; background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .num.sm { font-size:1.4rem; }
+  .label { color:var(--dim); font-size:.74rem; text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-bottom:5px; }
+  .pill { display:inline-block; padding:3px 12px; border-radius:30px; font-size:.7rem; font-weight:700; }
+  .p-good{background:rgba(47,211,154,.14);color:var(--good);} .p-warn{background:rgba(255,199,94,.14);color:var(--warn);} .p-bad{background:rgba(255,107,139,.14);color:var(--bad);} .p-acc{background:rgba(47,208,255,.14);color:var(--acc);}
+  .table { width:100%; border-collapse:collapse; font-size:.86rem; }
+  .table th { text-align:left; color:var(--dim); font-size:.68rem; text-transform:uppercase; letter-spacing:1px; padding:9px 11px; border-bottom:1px solid var(--line); }
+  .table td { padding:10px 11px; border-bottom:1px solid rgba(31,48,80,.5); font-size:.86rem; }
+  .table tr:hover td { background:rgba(47,208,255,.04); }
+  .mono { font-family:'SF Mono',Menlo,Consolas,monospace; color:var(--acc); font-size:.82rem; }
+  .divider { height:1px; background:var(--line); margin:18px 0; }
+  .flow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .flow .step { background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:7px 13px; font-size:.8rem; font-weight:600; }
+  .flow .step.hot { border-color:var(--acc); color:var(--acc); }
+  .flow .step.code { border-color:var(--good); color:var(--good); }
+  .flow .arr { color:var(--acc); font-weight:700; }
+
+  .btn { position:fixed; bottom:26px; z-index:30; width:50px; height:50px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(16,26,44,.7); color:var(--txt); font-size:1.3rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:all .25s; backdrop-filter:blur(8px); }
+  .btn:hover { background:var(--acc); border-color:var(--acc); color:#06101a; box-shadow:0 0 20px rgba(47,208,255,.5); }
+  .btn.prev { left:26px; }
+  .btn.next { right:26px; }
+  .counter { position:fixed; bottom:34px; left:50%; transform:translateX(-50%); z-index:30; font-size:.78rem; color:var(--dim); letter-spacing:1px; }
+  .keys { position:fixed; bottom:8px; right:16px; z-index:30; font-size:.66rem; color:var(--dim); }
+
+  .callout { display:flex; gap:14px; align-items:flex-start; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--good); border-radius:14px; padding:16px 18px; margin-top:18px; }
+  .callout.acc { border-left-color:var(--acc); } .callout.warn { border-left-color:var(--warn); }
+  .callout .ico { font-size:1.4rem; }
+  .callout b { color:var(--txt); }
+  .callout p { color:var(--muted); font-size:.9rem; }
+  .foot { position:absolute; bottom:2vh; font-size:.7rem; color:var(--dim); }
+  .chip { display:inline-block; background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:3px 10px; font-size:.74rem; margin:2px 3px 2px 0; color:var(--muted); }
+  .chip b { color:var(--txt); }
+  .step-no { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:7px; background:var(--grad); color:#06101a; font-weight:800; font-size:.8rem; margin-right:7px; }
+  .role { display:inline-flex; align-items:center; gap:7px; font-weight:700; font-size:.8rem; border-radius:8px; padding:2px 10px; }
+  .role.esi { background:rgba(47,208,255,.12); color:var(--acc); border:1px solid rgba(47,208,255,.35); }
+  .role.edi { background:rgba(125,139,255,.12); color:var(--acc2); border:1px solid rgba(125,139,255,.35); }
+  .role.af  { background:rgba(255,199,94,.12); color:var(--warn); border:1px solid rgba(255,199,94,.35); }
+  .role.rdb { background:rgba(47,211,154,.12); color:var(--good); border:1px solid rgba(47,211,154,.35); }
+  .role.it  { background:rgba(255,107,139,.12); color:var(--bad); border:1px solid rgba(255,107,139,.35); }
+</style>
+</head>
+<body>
+<div class="bgfx"><div class="glow1"></div><div class="glow2"></div></div>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>labIA <span class="sub">· Aysa · Plan de trabajo</span></div>
+  <div class="rail"><i id="railFill"></i></div>
+  <div class="stepper" id="stepper"></div>
+</div>
+
+<div class="deck" id="deck"></div>
+
+<div class="counter" id="counter"></div>
+<button class="btn prev" onclick="nav(-1)">‹</button>
+<button class="btn next" onclick="nav(1)">›</button>
+<div class="keys">← → navegar · F = fullscreen</div>
+
+<script>
+const SLIDES = [
+/* 1 PORTADA */
+()=>`
+<div class="grid cols2" style="align-items:center;height:100%;">
+  <div>
+    <div class="kicker warn">Confidencial · Uso interno labIA · No compartir con el cliente</div>
+    <h1>Plan de trabajo<br><span class="grad">LabIA · Aysa</span></h1>
+    <p class="lead" style="margin-top:20px;">Despliegue del MVP de <b>Calidad de Datos de Contacto</b> en <b>4 semanas</b> (base · 3 optimista · 6 pesimista). Este deck es el <b>plan de trabajo del equipo</b>: arquitectura detallada, actividades semana a semana y roles. <b>Acordado con Aysa: todo corre local</b>, dentro de su red.</p>
+    <div class="flow" style="margin-top:28px;">
+      <span class="step code">Ingesta (C1–C4)</span><span class="arr">→</span>
+      <span class="step code">Filtro (C5)</span><span class="arr">→</span>
+      <span class="step hot">IA · clasif./extr. (C6)</span><span class="arr">→</span>
+      <span class="step code">Juez + Norm (C7)</span><span class="arr">→</span>
+      <span class="step code">Cruce evidencia (C8)</span><span class="arr">→</span>
+      <span class="step code">Salidas + Tablero (C9–C10)</span>
+    </div>
+  </div>
+  <div class="grid cols2">
+    <div class="card hover"><div class="num">4 sem</div><div class="label">Despliegue base · 3 opt / 6 pes</div></div>
+    <div class="card hover"><div class="num">10</div><div class="label">Componentes C1–C10</div></div>
+    <div class="card hover"><div class="num">Local</div><div class="label">Corre en la red de Aysa · sin nube</div></div>
+    <div class="card hover"><div class="num">2</div><div class="label">Roles: ESI · EDI</div></div>
+  </div>
+</div>
+<p class="foot">Interno ESI/EDI · v0.2 · 15 Sep 2026</p>`,
+/* 2 ALCANCE LABIA */
+()=>`<div class="kicker">Alcance</div><h2 style="margin-bottom:20px;">Qué construye labIA · y sus límites</h2>
+<div class="grid cols2">
+  <div class="card">
+    <div class="label">Construimos</div>
+    <div style="padding:6px 0;font-size:.95rem;">· <b>Conector de la casilla</b> (Exchange on-prem, solo lectura) con dedupe y staging.</div>
+    <div style="padding:6px 0;font-size:.95rem;">· <b>Filtro determinístico</b> de ruido (sin IA).</div>
+    <div style="padding:6px 0;font-size:.95rem;">· <b>Modelo de clasificación y extracción</b> con schema estricto y prompt por campo.</div>
+    <div style="padding:6px 0;font-size:.95rem;">· <b>Juez de validación</b> y <b>normalización</b> de campos.</div>
+    <div style="padding:6px 0;font-size:.95rem;">· <b>Cruce determinístico</b> contra la fuente corporativa → evidencia.</div>
+    <div style="padding:6px 0;font-size:.95rem;">· <b>Datasets por campaña</b> + <b>tablero de métricas</b> + <b>log de auditoría</b>.</div>
+  </div>
+  <div class="card">
+    <div class="label">No construimos / no hacemos</div>
+    <div style="padding:6px 0;font-size:.95rem;">· <b>No escribimos</b> en Exchange ni en la fuente corporativa (solo lectura).</div>
+    <div style="padding:6px 0;font-size:.95rem;">· <b>No definimos la taxonomía de negocio</b>: definimos el <b>schema técnico de salida</b> y lo versionamos.</div>
+    <div style="padding:6px 0;font-size:.95rem;">· <b>No corregimos ni modificamos</b> datos automáticamente.</div>
+    <div style="padding:6px 0;font-size:.95rem;">· <b>No reemplazamos</b> procesos ni sistemas actuales.</div>
+    <div style="padding:6px 0;font-size:.95rem;">· <b>Nada decide solo</b>: la herramienta sustenta; el área responsable decide.</div>
+  </div>
+</div>
+<div class="callout acc"><span class="ico">🏠</span><div><b>Regla transversal:</b> IA para clasificar/estructurar texto · código (reglas + SQL) para exactitud, evidencia y auditoría. La identidad la confirma el <b>cruce contra la fuente corporativa</b>, nunca el LLM. <b>Todo corre local en la red de Aysa (acordado)</b>: los datos no salen del entorno del cliente.</div></div>`,
+/* 3 COMO SE ORGANIZA EL TRABAJO */
+()=>`<div class="kicker">Organización</div><h2 style="margin-bottom:18px;">Cómo se llega a 4 semanas sin comprimir la validación</h2>
+<div class="grid cols2">
+  <div class="card">
+    <div class="label">Palancas del plazo</div>
+    <div style="padding:6px 0;font-size:.92rem;"><b>1 · Pre-arranque en paralelo (S0):</b> muestra + acceso del cliente ANTES del día 1; labIA prepara entorno, staging, planilla y templates.</div>
+    <div style="padding:6px 0;font-size:.92rem;"><b>2 · Mvp acotado al despliegue:</b> datasets solo de las campañas priorizadas (2–3); el pipeline ingesta todo.</div>
+    <div style="padding:6px 0;font-size:.92rem;"><b>3 · Tracks en paralelo:</b> ESI (integración) y EDI (datos/IA) avanzan juntos desde el día 1.</div>
+    <div style="padding:6px 0;font-size:.92rem;"><b>4 · Contrato de salida adelantado:</b> firma con BI el día 2, no en la semana 8.</div>
+  </div>
+  <div class="card">
+    <div class="label">Qué NO se comprime</div>
+    <div style="padding:6px 0;font-size:.92rem;">· <b>Golden set completo (~300)</b>, doble etiquetado, split 70/15/15.</div>
+    <div style="padding:6px 0;font-size:.92rem;">· <b>Test congelado</b> fuera de todo ajuste.</div>
+    <div style="padding:6px 0;font-size:.92rem;">· <b>Validación de calidad</b> sobre data de entrenamiento y test.</div>
+    <div style="padding:6px 0;font-size:.92rem;">· Regla <b>"nadie valida lo que produce"</b>.</div>
+  </div>
+</div>
+<div class="grid cols3" style="margin-top:16px;">
+  <div class="card"><div class="num sm" style="color:var(--good)">3 sem</div><div class="label">Optimista</div><p class="body" style="font-size:.84rem;">EWS directo + golden set listo al día 1.</p></div>
+  <div class="card"><div class="num sm">4 sem</div><div class="label">Base</div><p class="body" style="font-size:.84rem;">Escenario nominal del plan S0–S4.</p></div>
+  <div class="card"><div class="num sm" style="color:var(--warn)">6 sem</div><div class="label">Pesimista</div><p class="body" style="font-size:.84rem;">Acceso demorado o golden set con re-etiquetado.</p></div>
+</div>
+<div class="callout warn"><span class="ico">⛔</span><div><b>Regla de oro del plazo:</b> el despliegue <b>arranca cuando la muestra y el acceso están disponibles</b> (antes del día 1). Si no llegan al kickoff → el cronograma se mueve entero (pesimista). Nunca se arranca sobre supuestos.</div></div>`,
+/* 4 ARQUITECTURA 8 CAPAS */
+()=>`<div class="kicker">Arquitectura</div><h2 style="margin-bottom:18px;">Pipeline de 8 capas · patrón de referencia</h2>
+<div class="grid cols2">
+  <div style="display:flex;flex-direction:column;gap:9px;">
+    ${[
+      ["1 · Ingesta","Conector Exchange (EWS/Graph/PST). Solo lectura · incremental + dedupe (ItemId + SHA-256) · staging append-only.","code"],
+      ["2 · Filtro","Determinístico, sin IA: OOO, bounces, spam, vacíos. No gasta cómputo del modelo.","code"],
+      ["3 · Clasificación + extracción","LLM con schema estricto + prompt por campo (Instructor/DocInfo). JSON validado; campos ausentes → null, nunca inventados.","ia"],
+      ["4 · Juez","2º pase sobre zona gris (~30%): coherencia + formato. Si no confirma → DUDOSO → cola humana.","code"],
+      ["5 · Normalización","Trim, mayúsculas, sin tildes, formatos de cuenta/documento. Reglas versionadas.","code"],
+      ["6 · Cruce determinístico","JOIN contra la fuente corporativa (solo lectura). Evidencia: Coincide · No coincide · Requiere revisión.","code"],
+      ["7 · Salidas + tablero","Datasets por campaña (contrato BI) + rastro de evidencia por fila + dashboard.","code"],
+      ["8 · Auditoría","Log inmutable: quién vio qué · versión de modelo/prompt · firma humana del cierre.","code"]
+    ].map(([t,d,tipo])=>`<div class="card" style="padding:12px 16px;flex:1;border-left:4px solid ${tipo==='ia'?'var(--acc2)':'var(--good)'};"><div style="font-weight:700;font-size:.92rem;">${t}</div><p class="body" style="font-size:.8rem;margin-top:3px;">${d}</p></div>`).join('')}
+  </div>
+  <div>
+    <div class="card" style="margin-bottom:14px;">
+      <div class="label">Corte código vs IA</div>
+      <div style="font-size:.9rem;padding:5px 0;">· <b class="mono">IA:</b> clasificación, extracción, 2º pase del juez, explicaciones.</div>
+      <div style="font-size:.9rem;padding:5px 0;">· <b class="mono">Código:</b> ingesta, filtro, normalización, <b>cruce de identidad</b>, salidas, auditoría.</div>
+      <div style="font-size:.9rem;padding:5px 0;">· <b class="mono">Por qué:</b> la evidencia debe ser reproducible y auditable: <b>NUNCA IA</b>.</div>
+    </div>
+    <div class="card">
+      <div class="label">Regla de oro</div>
+      <p class="body" style="font-size:.88rem;"><b>La herramienta clasifica y extrae · la evidencia la aporta el cruce · la decisión final es del área responsable.</b> Cada correo útil queda con: clase, campos extraídos, evidencia del cruce y versión de reglas/prompts.</p>
+    </div>
+    <div class="callout acc" style="margin-top:14px;"><span class="ico">⚙️</span><div><b>Orden de implementación:</b> las 8 capas NO se construyen de golpe. Se validan etapa por etapa contra el golden set; el test congelado asegura que el resultado final de la semana 3 es honesto.</div></div>
+  </div>
+</div>`,
+/* 5 PROCESO END-TO-END */
+()=>`<div class="kicker">Proceso</div><h2 style="margin-bottom:18px;">Mismo pipeline, un correo a la vez</h2>
+<div class="grid cols2">
+  <div class="card">
+    <div class="label">Flujo de un correo útil</div>
+    <div style="padding:6px 0;font-size:.92rem;"><span class="step-no">A</span><b>Ingresa el correo.</b> El conector (dentro de la VPN) copia solo lo nuevo al staging con fecha y sello único. No borra ni modifica.</div>
+    <div style="padding:6px 0;font-size:.92rem;"><span class="step-no">B</span><b>Se separa el ruido.</b> El filtro determinístico (sin IA) descarta autorespuestas, devoluciones y spam. Lo que queda es contenido real de campaña.</div>
+    <div style="padding:6px 0;font-size:.92rem;"><span class="step-no">C</span><b>La IA clasifica y extrae.</b> Responde con formato estricto: clase + campos de contacto. Si un campo falta → queda marcado y el caso puede ir a revisión. El modelo no inventa.</div>
+    <div style="padding:6px 0;font-size:.92rem;"><span class="step-no">D</span><b>Se verifica contra la fuente.</b> El cruce determinístico compara contra la base relacional → evidencia: Coincide · No coincide · Requiere revisión.</div>
+    <div style="padding:6px 0;font-size:.92rem;"><span class="step-no">E</span><b>Se arma el dataset.</b> Por campaña, con el rastro de por qué cada caso quedó donde quedó.</div>
+  </div>
+  <div>
+    <div class="card">
+      <div class="label">Resultado por correo (rastro)</div>
+      <div class="chip"><b>clase:</b> CONFIRMA · NO_ES_MIA · DUDOSO · OPTOUT · IRRELEVANTE</div>
+      <div class="chip"><b>campos:</b> email · cuenta · nombre · dirección · teléfono · documento/tipo · relación titular · titular</div>
+      <div class="chip"><b>evidencia:</b> ¿qué fila de la fuente sustentó el estado?</div>
+      <div class="chip"><b>versión:</b> modelo_version · prompt_version · umbrales</div>
+      <div class="chip"><b>decisión:</b> reviewer + timestamp si pasó por humano</div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <div class="label">Piso de control (nunca se salta)</div>
+      <div style="font-size:.9rem;padding:5px 0;">· Los casos ambiguos <b>nunca se deciden solos</b> → van a revisión humana.</div>
+      <div style="font-size:.9rem;padding:5px 0;">· JSON mal formado o valores contradichos → <b>rechazo → revisión</b>.</div>
+      <div style="font-size:.9rem;padding:5px 0;">· Sin evidencia del cruce → el caso <b>no se libera</b> (100% bloqueante).</div>
+    </div>
+  </div>
+</div>`,
+/* 6 INGESTA + FILTRO */
+()=>`<div class="kicker">Componentes C1–C5 · ESI</div><h2 style="margin-bottom:18px;">Ingesta y filtro · datos crudos → útiles</h2>
+<div style="overflow:auto;max-height:62vh;">
+<table class="table">
+  <thead><tr><th>Comp</th><th>Qué hace</th><th>Detalle técnico</th><th>Entregable</th></tr></thead>
+  <tbody>
+    <tr><td><b>C1</b></td><td>Conector Exchange</td><td>EWS <span class="mono">SyncFolderItems</span> (watermark) vía exchangelib / ews-javascript-api; o Graph API <span class="mono">users/{casilla}/messages</span>. Cuenta de servicio mínimo privilegio (sin login interactivo, solo lectura); Basic Auth sobre TLS 1.2 u OAuth.</td><td>Servicio/worker de ingesta</td></tr>
+    <tr><td><b>C2</b></td><td>Plan B · Importe PST</td><td><span class="mono">New-MailboxExportRequest</span> para histórico si IT no habilita conexión directa; parser .pst → .eml/.msg. Respaldo que desbloquea el cronograma.</td><td>Importador batch</td></tr>
+    <tr><td><b>C3</b></td><td>Dedupe + incremental</td><td>Dedupe por ItemId (Exchange) + SHA-256 del mensaje completo; cursor por watermark / <span class="mono">LastModifiedTime</span>; job cada 10–15 min o diario según volumen. Hash distinto → se marca revisado.</td><td>Idempotencia</td></tr>
+    <tr><td><b>C4</b></td><td>Staging append-only</td><td>Tablas <span class="mono">stg_email</span> y <span class="mono">stg_adjunto</span>; nunca se edita/borra; cada relectura es fila nueva con checksum; rastro created_at / processed_at.</td><td>Tablas en repositorio corporativo</td></tr>
+    <tr><td><b>C5</b></td><td>Filtro determinístico</td><td>Reglas de código (sin IA): asunto OOO, headers <span class="mono">Delivery Status Notification</span>, heurística de spam/vacíos. <span class="mono">ruido=True</span> → fuera del pipeline del modelo (no gasta cómputo).</td><td>Reglas + bitácoras</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="callout acc" style="margin-top:16px;"><span class="ico">🔐</span><div><b>Seguridad local de la puerta de entrada:</b> única cuenta de servicio de solo lectura; credenciales las crea IT del cliente y viven en su gestor de secretos; el secreto jamás viaja en código.</div></div>`,
+/* 7 CLASIFICACION + EXTRACCION + JUEZ */
+()=>`<div class="kicker">Componente C6 · EDI</div><h2 style="margin-bottom:18px;">Clasificación / extracción · schema estricto + juez</h2>
+<div class="grid cols2">
+  <div class="card">
+    <div class="label">Cómo se construye (EDI)</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>Prompt por campo</b> (patrón Instructor/DocInfo): definición + ejemplos + formato de salida obligatorio por campo.</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>Schema estricto</b> validado por código: si no parsea o no cumple → rechazo → revisión humana.</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>Campos ausentes → null explícito</b> (nunca se inventa un valor).</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>Modelos (local):</b> <span class="mono">Qwen2.5-7B/14B</span> self-host en la VPN del cliente.</div>
+  </div>
+  <div class="card">
+    <div class="label">Schema de salida (JSON)</div>
+    <div class="mono" style="display:block;font-size:.76rem;white-space:pre-wrap;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;">{
+  "clase": "CONFIRMA|NO_ES_MIA|DUDOSO|OPTOUT|IRRELEVANTE",
+  "campana": "string|null",
+  "contacto": { email, cuenta, nombre_apellido,
+    direccion, telefono, documento_y_tipo,
+    relacion_titular, titular },
+  "confianza": 0.0-1.0,
+  "razon": "string" // explicación
+}</div>
+  </div>
+</div>
+<div class="card" style="margin-top:14px;">
+  <div class="label">Juez de validación (2º pase)</div>
+  <div style="padding:5px 0;font-size:.9rem;">· Corre sobre la <b>zona gris (~30% de casos)</b>: confianza media, campos incompletos, datos contradictorios internamente.</div>
+  <div style="padding:5px 0;font-size:.9rem;">· Verifica <b>coherencia y formato</b>: cuenta/contrato con formato esperado, dígitos de teléfono/documento según Aysa, ausencia de contradicciones (ej. CONFIRMA sin contacto → incongruente).</div>
+  <div style="padding:5px 0;font-size:.9rem;">· Si el juez <b>no confirma → DUDOSO → cola humana</b>. Cada fila guarda modelo_version y prompt_version.</div>
+</div>`,
+/* 8 NORMALIZACION + CRUCE */
+()=>`<div class="kicker">Componentes C7–C8 · ESI</div><h2 style="margin-bottom:18px;">Normalización y cruce · la evidencia</h2>
+<div class="grid cols2">
+  <div class="card">
+    <div class="label">C7 · Normalización (ESI)</div>
+    <div style="padding:5px 0;font-size:.9rem;">· Aplica a los campos extraídos <b>antes</b> del cruce: trim, mayúsculas, sin tildes; formatos de cuenta y documento (ceros, guiones, espacios).</div>
+    <div style="padding:5px 0;font-size:.9rem;">· Razón: la cuenta y el documento <b>rara vez vienen iguales</b> en el email que en la base.</div>
+    <div style="padding:5px 0;font-size:.9rem;">· Reglas <b>versionadas</b> y validadas contra la fuente por el lado del cliente (RDB) en los días 7–10.</div>
+    <div class="divider"></div>
+    <div class="label">C8 · Cruce determinístico (ESI)</div>
+    <div style="padding:5px 0;font-size:.9rem;">· Stored proc / vista con JOIN contra la base relacional corporativa.</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>Sin LLM</b>: reproducible y auditable. Nunca escribe ni actualiza la fuente.</div>
+  </div>
+  <div class="card">
+    <div class="label">Lógica de evidencia (reglas versionadas)</div>
+    <table class="table" style="font-size:.82rem;">
+      <tr><td><b>Cuenta/contrato + titular coinciden</b></td><td class="mono">Coincide</td></tr>
+      <tr><td>Cuenta/contacto no encontrado o contradictorio</td><td class="mono">No coincide + motivo</td></tr>
+      <tr><td>Match parcial o campos ausentes</td><td class="mono">Requiere revisión + banderas</td></tr>
+      <tr><td>Sin match pero datos coherentes</td><td class="mono">Requiere revisión (no se inventa)</td></tr>
+    </table>
+    <p class="body" style="font-size:.82rem;margin-top:10px;">Cada estado guarda <b class="mono">id_fila_que_valido</b>: qué fila de la fuente sustentó el resultado → auditable ante "¿cómo saben que es ese titular?".</p>
+  </div>
+</div>
+<div class="callout" style="margin-top:14px;"><span class="ico">🧾</span><div><b>Insumo del cruce:</b> la consulta de lectura contra la base corporativa depende de los <b>permisos de lectura</b> coordinados con IT (días 7–10). Si se demoran → el cruce se valida con datos de prueba y la evidencia final se revalida en S3 (se documenta como desvío).</div></div>`,
+/* 9 SALIDAS + TABLERO + AUDITORIA */
+()=>`<div class="kicker">Componentes C9–C10 · ESI/EDI</div><h2 style="margin-bottom:18px;">Salidas, tablero y auditoría · lo consumible</h2>
+<div class="grid cols2">
+  <div class="card">
+    <div class="label">C9 · Contrato de salida</div>
+    <div style="padding:5px 0;font-size:.9rem;">· Esqueleto CSV/vista BI implementado <b>desde la semana 1</b>; formato firmado con BI el <b>día 2</b> (columnas, granularidad, periodicidad, publicación).</div>
+    <div style="padding:5px 0;font-size:.9rem;">· Adelanto que elimina el retrabajo en caliente.</div>
+    <div class="divider"></div>
+    <div class="label">C10 · Tablero de métricas</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>Leading</b> (por fase): precisión clasificación/extracción, % derivación, tiempo por caso.</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>Lagging</b>: inconsist. por origen, datasets entregados, horas de revisión liberadas.</div>
+  </div>
+  <div class="card">
+    <div class="label">Cierre del circuito · Auditoría (capa 8)</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>seg_decision:</b> email_id, estado, motivo, id_fila_que_valido, reviewer, reviewed_at.</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>seg_campana:</b> campaña, estado, cuenta_id, email_id, fecha, evidencia → dataset por campaña.</div>
+    <div style="padding:5px 0;font-size:.9rem;">· Log <b>append-only e inmutable</b>: cada cierre humano deja nombre + timestamp; cada fila conserva versión de modelo/prompt.</div>
+    <div style="padding:5px 0;font-size:.9rem;">· Exportable para auditoría externa.</div>
+  </div>
+</div>
+<div class="card" style="margin-top:14px;">
+  <div class="label">Salida de la ventana del despliegue (resultado esperado)</div>
+  <p class="body" style="font-size:.88rem;"><b>Lote acotado procesado con el pipeline final:</b> datasets de las campañas priorizadas con rastro de evidencia por correo. El resto del histórico se procesa post-cierre con el mismo motor (el acotado es restricción de ventana, no de capacidad).</p>
+</div>`,
+/* 10 MODELO DE DATOS */
+()=>`<div class="kicker">Datos</div><h2 style="margin-bottom:18px;">Modelo de datos · staging y segmentos</h2>
+<div class="grid cols2">
+  <div class="card">
+    <div class="label">Ingesta (append-only)</div>
+    <div class="mono" style="display:block;font-size:.72rem;white-space:pre-wrap;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;">-- stg_email
+email_id int PK, item_id varchar UNIQUE, hash sha256,
+remitente, asunto, fecha_recibido datetime,
+tamano, tiene_adjuntos bool, raw_path,
+created_at, processed_at
+
+-- stg_adjunto
+email_id int FK, nombre_archivo, formato,
+tamano, path</div>
+    <p class="body" style="font-size:.78rem;margin-top:8px;">Nunca se edita ni borra: cada relectura es una fila nueva con checksum → trazabilidad total.</p>
+  </div>
+  <div class="card">
+    <div class="label">Clasificación / extracción</div>
+    <div class="mono" style="display:block;font-size:.72rem;white-space:pre-wrap;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;">-- stg_extraccion
+email_id FK, clase_pred, campana_pred,
+email, cuenta, nombre_apellido, direccion,
+telefono, documento_y_tipo, relacion_titular,
+titular, score,
+modelo_version, prompt_version, resultado_juez,
+created_at</div>
+    <p class="body" style="font-size:.78rem;margin-top:8px;">Versión de modelo y prompt <b>por fila</b> → se audita con qué versión se clasificó cada correo.</p>
+  </div>
+  <div class="card">
+    <div class="label">Evidencia y decisión</div>
+    <div class="mono" style="display:block;font-size:.72rem;white-space:pre-wrap;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;">-- seg_decision
+email_id, estado, motivo,
+id_fila_que_valido,  -- evidencia
+reviewer, reviewed_at
+
+-- seg_campana (dataset por campaña)
+campaña, estado, cuenta_id, email_id,
+fecha, evidencia</div>
+    <p class="body" style="font-size:.78rem;margin-top:8px;">Formato de salida definido por el <b>contrato BI</b> (día 2).</p>
+  </div>
+  <div class="card">
+    <div class="label">Reglas de datos</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>JSON inválido → rechazo → revisión</b> (nunca se persiste mal formado).</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>null explícito</b> para campos ausentes (no se inventa valor).</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>Dedupe a nivel fila</b> (hash + ItemId) para reproceso idempotente.</div>
+    <div style="padding:5px 0;font-size:.9rem;">· <b>Evidencia 100%</b>: sin id_fila_que_valido, el caso no se libera.</div>
+  </div>
+</div>`,
+/* 11 IA VS CODIGO */
+()=>`<div class="kicker">Diseño</div><h2 style="margin-bottom:18px;">Qué se delega a IA · qué se queda en código ("piso")</h2>
+<div class="grid cols2">
+  <div class="card">
+    <div class="label" style="color:var(--acc2);">Se delega a IA (interpretar + estructurar)</div>
+    <div style="padding:6px 0;font-size:.92rem;">· <b>Clasificar</b> cada correo útil en una de 5 clases + campaña tentativa.</div>
+    <div style="padding:6px 0;font-size:.92rem;">· <b>Extraer</b> los 8 campos de contacto desde asunto/cuerpo.</div>
+    <div style="padding:6px 0;font-size:.92rem;">· <b>2º pase del juez</b> sobre zona gris (coherencia, contradicciones).</div>
+    <div style="padding:6px 0;font-size:.92rem;">· <b>Explicación/razón</b> de cada clasificación (campo razon) y materiales de apoyo.</div>
+  </div>
+  <div class="card">
+    <div class="label" style="color:var(--good);">Se conserva en código (exactitud + auditoría)</div>
+    <div style="padding:6px 0;font-size:.92rem;">· Lectura de Exchange con usuario de <b>solo lectura</b>.</div>
+    <div style="padding:6px 0;font-size:.92rem;">· <b>Filtro de ruido</b> determinístico.</div>
+    <div style="padding:6px 0;font-size:.92rem;">· <b>Dedupe / hash / integridad</b>.</div>
+    <div style="padding:6px 0;font-size:.92rem;">· <b>Normalización</b> y <b>cruce contra la fuente</b> → evidencia reproducible.</div>
+    <div style="padding:6px 0;font-size:.92rem;">· <b>Log de auditoría</b> inmutable + firma humana del cierre.</div>
+  </div>
+</div>
+<div class="callout acc"><span class="ico">⚖️</span><div><b>Por qué se reparte así:</b> clasificar/extraer texto es una tarea interpretativa (ideal para IA). Confirmar "¿coincide contra la base?" es un problema de exactitud y registro (ideal reglas + SQL). <b>El LLM sugiere, la regla confirma.</b></div></div>`,
+/* 12 MODEL ROUTING */
+()=>`<div class="kicker">Costo de IA</div><h2 style="margin-bottom:18px;">Model routing · usar modelos con cabeza</h2>
+<div style="overflow:auto;max-height:56vh;">
+<table class="table">
+  <thead><tr><th>Tarea</th><th>Frecuencia</th><th>Modelo</th></tr></thead>
+  <tbody>
+    <tr><td>Filtro de ruido</td><td>— (no IA)</td><td class="mono">Código</td></tr>
+    <tr><td>Clasificación + extracción por email útil</td><td>Alta · 1 por email</td><td><b>Liviano local</b>: <span class="mono">Qwen2.5-7B/14B</span> self-host · prompt por campo</td></tr>
+    <tr><td>Juez · 2º pase zona gris</td><td>Media · ~30% de emails</td><td>Liviano local (misma familia)</td></tr>
+    <tr><td>Explicación/razón por caso</td><td>Alta</td><td>Liviano local</td></tr>
+    <tr><td>Agrupación / resúmenes de revisión</td><td>Baja</td><td class="mono">Potente local</td></tr>
+    <tr><td>Materiales de informe de cierre</td><td>Muy baja</td><td class="mono">Potente local</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="grid cols2" style="margin-top:14px;">
+  <div class="card"><div class="label">Regla de consumo</div><p class="body" style="font-size:.88rem;">El LLM <b>no procesa lo que el filtro/código ya decidió</b>. Pasa solo por: emails útiles + zona gris + explicaciones. El recurrente crece con esos dos volúmenes, no con el total de la casilla.</p></div>
+  <div class="card"><div class="label">Baseline para dimensionar</div><p class="body" style="font-size:.88rem;">~50K emails históricos iniciales (acumulado de varios años). % de utilidad a medir con la muestra en S1 (referencia a calibrar ~70% → ~35K útiles). Flujo recurrente bajo. <b>Sin muestra real no se dimensiona cómputo.</b></p></div>
+</div>`,
+/* 13 INFRAESTRUCTURA LOCAL */
+()=>`<div class="kicker">Infraestructura</div><h2 style="margin-bottom:18px;">Dónde corre · local en la red de Aysa (acordado)</h2>
+<div class="grid cols2">
+  <div class="card">
+    <div class="label">Local · dentro de la VPN de Aysa</div>
+    <div style="padding:6px 0;font-size:.9rem;border-bottom:1px solid var(--line);"><b>Modelos:</b> <span class="mono">Qwen2.5-7B/14B</span> self-host (familia potente para resúmenes).</div>
+    <div style="padding:6px 0;font-size:.9rem;border-bottom:1px solid var(--line);"><b>Datos:</b> los datos nunca salen de la red del cliente → cumplimiento Ley 25.326 sin transferencia de PII.</div>
+    <div style="padding:6px 0;font-size:.9rem;"><b>Requisito:</b> cómputo disponible provisto por IT del cliente en su infraestructura.</div>
+    <div class="pill p-good" style="margin-top:6px;">Decisión acordada con Aysa</div>
+  </div>
+  <div class="grid cols1" style="gap:12px;align-content:start;">
+    <div class="card"><div class="num sm" style="color:var(--good)">2vCPU · 8GB</div><div class="label">Pesimista (huella mínima)</div><p class="body" style="font-size:.82rem;">100 GB · respaldo semanal · USD 100–150/mes</p></div>
+    <div class="card"><div class="num sm">4vCPU · 16GB</div><div class="label">Base (huella nominal)</div><p class="body" style="font-size:.82rem;">300 GB · respaldo diario · USD 300–500/mes</p></div>
+    <div class="card"><div class="num sm" style="color:var(--warn)">8–16vCPU · 32GB</div><div class="label">Optimista (huella holgada)</div><p class="body" style="font-size:.82rem;">1 TB · respaldo + PITR · USD 800–1.500/mes</p></div>
+  </div>
+</div>
+<div class="callout warn" style="margin-top:14px;"><span class="ico">⚡</span><div><b>Dimensionamiento (días 16–20):</b> el tamaño final de la huella se confirma con IT con el <b>cómputo real medido sobre la muestra</b>, no por preferencia. Importante: la familia de modelos definida corre dentro del presupuesto de cómputo local de Aysa.</div></div>`,
+/* 14 ROLES Y RESPONSABILIDADES */
+()=>`<div class="kicker">Equipo</div><h2 style="margin-bottom:18px;">Roles y responsabilidades · quién hace qué</h2>
+<div class="grid cols2">
+  <div class="card">
+    <div class="label">ESI · Integración</div>
+    <div style="padding:5px 0;font-size:.92rem;">· <b>Lado del cliente / infra:</b> conector C1–C4, importe PST (C2), staging, dedupe, filtro C5.</div>
+    <div style="padding:5px 0;font-size:.92rem;">· <b>Corrección y evidencia:</b> normalización C7, cruce C8 contra la fuente corporativa.</div>
+    <div style="padding:5px 0;font-size:.92rem;">· <b>Salidas:</b> contrato de salida C9, rutas CSV/vista BI.</div>
+    <div style="padding:5px 0;font-size:.92rem;">· <b>Despliegue local:</b> entorno en la VPN del cliente, modelos self-host, secretos con IT.</div>
+    <div style="padding:6px 0;font-size:.9rem;"><span class="role esi">ESI</span> valida funcional la ingesta y el cruce.</div>
+  </div>
+  <div class="card">
+    <div class="label">EDI · Datos / IA</div>
+    <div style="padding:5px 0;font-size:.92rem;">· <b>Modelo:</b> clasificación y extracción (C6), prompts por campo, schema estricto.</div>
+    <div style="padding:5px 0;font-size:.92rem;">· <b>Juez:</b> zona gris, coherencia, umbrales, cola humana.</div>
+    <div style="padding:5px 0;font-size:.92rem;">· <b>Golden set:</b> administración de planilla, split 70/15/15, test congelado, kappa.</div>
+    <div style="padding:5px 0;font-size:.92rem;">· <b>Model routing y costo:</b> qué modelo para cada tarea, dimensionamiento con la muestra.</div>
+    <div style="padding:6px 0;font-size:.9rem;"><span class="role edi">EDI</span> produce resultados; la validación de calidad la hace el cliente (AF).</div>
+  </div>
+</div>
+<div class="grid cols3" style="margin-top:14px;">
+  <div class="card"><div class="label">AF · Área funcional (cliente)</div><p class="body" style="font-size:.82rem;">Define taxonomía (día 1), etiqueta doble el golden set, valida calidad del modelo y juicio del juez.</p></div>
+  <div class="card"><div class="label">RDB · Base relacional</div><p class="body" style="font-size:.82rem;">Habilita la consulta de lectura para el cruce y valida la evidencia de cada fila.</p></div>
+  <div class="card"><div class="label">IT · Infraestructura</div><p class="body" style="font-size:.82rem;">Crea la cuenta de servicio de solo lectura, otorga permisos y provee el cómputo local.</p></div>
+</div>
+<div class="callout acc" style="margin-top:14px;"><span class="ico">👥</span><div><b>Regla transversal:</b> <b>nadie valida lo que produce</b>. ESI entrega → RDB/IT valida. EDI entrega → AF/cliente valida. Sin validación cruzada el componente no se declara "done".</div></div>`,
+/* 15 PLAN S0 + S1 */
+()=>`<div class="kicker">Plan · S0 + S1</div><h2 style="margin-bottom:16px;">Pre-arranque y baseline · condición de entrada</h2>
+<div style="overflow:auto;max-height:64vh;">
+<table class="table">
+  <thead><tr><th>Semana</th><th>Actividad de labIA</th><th>Coordinación con el cliente</th><th>Resultado</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>S0 · Pre-arranque</b></td>
+      <td>Entorno VPN + tablas staging + planilla golden set (admin) + templates de prompts + reserva de sesiones (días 1–9).</td>
+      <td>Muestra real + acceso de lectura <b>antes del día 1</b> (IT + CMP)</td>
+      <td>Día 1 listo para arrancar</td>
+    </tr>
+    <tr>
+      <td><b>S1 · Baseline e ingesta</b></td>
+      <td>· Exploratorio con CSV de metadatos: volumen/año (valida ~50K), campañas por asunto/remitente, % ruido real, adjuntos y formatos, remitentes, incompletos → doc "lectura de la casilla".<br>· Conector leyendo con dedupe + staging (días 2–5).<br>· Filtro determinístico v1.<br>· Esqueleto de salida (contrato BI).<br>· Golden set: primeras etiquetas dobles (admin).</td>
+      <td>Kickoff + taxonomía (día 1) · Contrato BI firmado (día 2) · Sesiones etiquetado (días 3–9)</td>
+      <td>Esquema aprobado + primer lote real leído + % útil medido</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="card" style="margin-top:14px;">
+  <div class="label">Criterios de aceptación de S0–S1 (labIA)</div>
+  <div style="padding:4px 0;font-size:.88rem;">· Se puede leer la muestra, cargar planilla y ejecutar prompts <b>sin permisos pendientes</b>.</div>
+  <div style="padding:4px 0;font-size:.88rem;">· Lote real leído <b>sin duplicados, sin tocar la casilla</b> · <b>≥90%</b> del ruido conocido descartado · doc de lectura aprobado.</div>
+</div>`,
+/* 16 PLAN S2 */
+()=>`<div class="kicker">Plan · S2</div><h2 style="margin-bottom:16px;">Golden set completo · modelo · juez</h2>
+<div style="overflow:auto;max-height:64vh;">
+<table class="table">
+  <thead><tr><th>Bloque</th><th>Actividad de labIA</th><th>Coordinación con el cliente</th><th>Resultado</th></tr></thead>
+  <tbody>
+    <tr><td><b>Golden set</b></td><td>Split 70/15/15 con <b>test congelado</b> bajo custodia de labIA. Administración de planilla, validaciones y medición de acuerdo entre etiquetadores (objetivo kappa ≥ 0.8).</td><td>Etiquetado doble por 2 personas del negocio (días 3–9)</td><td>Golden set completado día 9 + test congelado</td></tr>
+    <tr><td><b>Modelo</b></td><td>Prompts por campo (schema estricto), primera corrida sobre train con el modelo local elegido; reporte de primeras métricas; revisión conjunta de errores (mal clasificados).</td><td>—</td><td>Primeras métricas sobre train con errores documentados</td></tr>
+    <tr><td><b>Juez + umbrales</b></td><td>Definición de zona gris, 2º pase de coherencia, ajuste de umbrales con AF; corrida sobre <b>validation</b> contra los criterios de calidad del proyecto.</td><td>AF valida reglas del juez</td><td>Cuadro de calidad sobre validation o gap con plan de cierre</td></tr>
+    <tr><td><b>Normalización + cruce</b></td><td>Reglas de normalización v1 (C7); consulta de lectura contra la base corporativa funcionando.</td><td>Permisos lectura DB corporativa <b>días 7–10</b></td><td>Cruce listo para datos reales (insumo del día 12)</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="card" style="margin-top:14px;">
+  <div class="label">Criterios de aceptación de S2 (labIA)</div>
+  <div style="padding:4px 0;font-size:.88rem;">· kappa ≥ 0.8 · test congelado <b>fuera de alcance de todo ajuste</b>.</div>
+  <div style="padding:4px 0;font-size:.88rem;">· Calidad sobre validation dentro de criterio o gap con plan de cierre para S3.</div>
+  <div style="padding:4px 0;font-size:.88rem;">· Consulta de lectura real funcionando al día 10 (si los permisos se demoran → se documenta desvío).</div>
+</div>`,
+/* 17 PLAN S3 */
+()=>`<div class="kicker">Plan · S3</div><h2 style="margin-bottom:16px;">Cruce · evaluación final · datasets v1</h2>
+<div style="overflow:auto;max-height:64vh;">
+<table class="table">
+  <thead><tr><th>Bloque</th><th>Actividad de labIA</th><th>Resultado</th></tr></thead>
+  <tbody>
+    <tr><td><b>Cruce contra la fuente</b></td><td>Stored proc/vista con JOIN + normalización aplicada (días 12–15). Cada correo queda con evidencia y motivo.</td><td>Evidencia por correo: Coincide / No coincide / Requiere revisión</td></tr>
+    <tr><td><b>Primer correo real E2E</b></td><td>Día 15: un correo recorre todo el pipeline → conector → filtro → clasificación → extracción → normalización → cruce → dataset.</td><td>Caso "resuelto" registrado y validado como hito</td></tr>
+    <tr><td><b>Evaluación final</b></td><td>Pipeline completo sobre el <b>test congelado</b> (nadie lo miró). Reporte de resultados; ajustes finos propuestos (prompts/umbrales) y registrada la diferencia entre 1ª corrida y versión final. <b>El resultado reportado es el de la 1ª corrida honesta.</b></td><td>Resultados versionados</td></tr>
+    <tr><td><b>Cola humana + cómputo</b></td><td>Tiempo por caso dudoso documentado; cómputo real consumido en la muestra → dimensionamiento final local con IT (días 16–20).</td><td>Huella local confirmada con evidencia</td></tr>
+    <tr><td><b>Datasets v1</b></td><td>Con el contrato firmado (día 2), publicación de los primeros datasets por campaña priorizada (días 18–21) con rastro de evidencia.</td><td>Datasets v1 servidos en formato BI</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="callout acc" style="margin-top:14px;"><span class="ico">🎯</span><div><b>Integridad de la evaluación:</b> el resultado final sale de un set que <b>nadie miró</b> durante el desarrollo. No hay tuning post-test; si no se llega a criterio → gap con plan de cierre documentado.</div></div>`,
+/* 18 PLAN S4 */
+()=>`<div class="kicker">Plan · S4</div><h2 style="margin-bottom:16px;">Lote final · documentación · traspaso</h2>
+<div style="overflow:auto;max-height:64vh;">
+<table class="table">
+  <thead><tr><th>Bloque</th><th>Actividad de labIA</th><th>Resultado</th></tr></thead>
+  <tbody>
+    <tr><td><b>Lote acotado final</b></td><td>Procesar los correos útiles de las <b>campañas priorizadas</b> con el pipeline final (días 22–25), no solo la muestra. Datasets por campaña con rastro de evidencia por correo.</td><td>Despliegue completado en la ventana</td></tr>
+    <tr><td><b>Documentación técnica</b></td><td>Conector, staging, filtro, normalización, cruce (ESI) + esquema, prompts, juez, umbrales (EDI). Publicada versionada (v1.0) en el repositorio del cliente (días 23–26).</td><td>Docs v1.0 aprobadas por IT/RDB</td></tr>
+    <tr><td><b>Tablero de métricas</b></td><td>Leading (precisión, % derivación, tiempo/caso) + lagging (inconsist. por origen, datasets, horas liberadas).</td><td>Tablero publicado</td></tr>
+    <tr><td><b>Revisión final + informe</b></td><td>Revisión conjunta de calidad contra el test; informe de cierre con <b>3 escenarios</b> anclados en el baseline medido; registro de riesgos actualizado con resultado real (días 26–28).</td><td>Informe de cierre entregado</td></tr>
+    <tr><td><b>Traspaso y firma</b></td><td>Show &amp; tell (dataset, tablero, evidencia, correo en vivo); traspaso de la operación al área de datos/BI; firma del cierre (día 28).</td><td>Despliegue firmado · operación transferida</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="card" style="margin-top:14px;">
+  <div class="label">Resultado final del despliegue (qué queda)</div>
+  <p class="body" style="font-size:.88rem;">Despliegue completado: <b>datasets por campaña + evidencia por fila + documentación v1.0 + tablero</b>, con la operación en manos del área de datos del cliente y acompañamiento acotado de labIA definido en el acuerdo.</p>
+</div>`,
+/* 19 RIESGOS TECNICOS */
+()=>`<div class="kicker">Riesgos</div><h2 style="margin-bottom:18px;">Riesgos técnicos (registro interno labIA)</h2>
+<div style="overflow:auto;max-height:64vh;">
+<table class="table">
+  <thead><tr><th>#</th><th>Riesgo técnico</th><th>Prob</th><th>Imp</th><th>Mitigación</th></tr></thead>
+  <tbody>
+    <tr><td>T1</td><td>El LLM alucina campos de contacto</td><td><span class="pill p-warn">Med</span></td><td><span class="pill p-bad">Alto</span></td><td>Schema estricto + prompt por campo + juez + golden set; null explícito; JSON inválido → revisión</td></tr>
+    <tr><td>T2</td><td>Exchange on-prem → M365 / migración</td><td><span class="pill p-warn">Med</span></td><td><span class="pill p-warn">Med</span></td><td>Diseño agnóstico: mismo patrón con Graph API</td></tr>
+    <tr><td>T3</td><td>Dedupe no alcanza (idénticos legítimos / hash inestable)</td><td><span class="pill p-good">Baj</span></td><td><span class="pill p-warn">Med</span></td><td>Dedupe por ItemId + hash; processed_at y relectura trazable</td></tr>
+    <tr><td>T4</td><td>Normalización no calza con la fuente (formatos de cuenta/documento)</td><td><span class="pill p-warn">Med</span></td><td><span class="pill p-warn">Med</span></td><td>Versionado de reglas; validación con RDB; casos → Requiere revisión</td></tr>
+    <tr><td>T5</td><td>Acuerdo de etiquetado &lt; 0.8 (golden set inconsistente)</td><td><span class="pill p-warn">Med</span></td><td><span class="pill p-warn">Med</span></td><td>Reescribir definiciones y re-etiquetar la franja (escenario pesimista)</td></tr>
+    <tr><td>T6</td><td>Test congelado contaminado</td><td><span class="pill p-good">Baj</span></td><td><span class="pill p-bad">Alto</span></td><td>Custodia por labIA; fuera del ajuste; resultado = 1ª corrida</td></tr>
+    <tr><td>T7</td><td>Cómputo local insuficiente para el volumen real</td><td><span class="pill p-warn">Med</span></td><td><span class="pill p-warn">Med</span></td><td>Dimensionar con cómputo real de la muestra (días 16–20) y reservar con IT</td></tr>
+    <tr><td>T8</td><td>Costo de IA recurrente fuera de rango</td><td><span class="pill p-warn">Med</span></td><td><span class="pill p-warn">Med</span></td><td>Model routing; IA solo sobre útiles + zona gris; escenarios anclados en baseline</td></tr>
+    <tr><td>T9</td><td>Permisos del entorno mal configurados (lectura/escritura indebida sobre fuentes)</td><td><span class="pill p-good">Baj</span></td><td><span class="pill p-bad">Alto</span></td><td>Solo lectura, cuenta de servicio mínimo privilegio, secretos en gestor del cliente, revisión en hitos 10/20</td></tr>
+  </tbody>
+</table>
+</div>`,
+/* 20 DECISIONES TECNICAS DE EJECUCION */
+()=>`<div class="kicker">Decisiones técnicas</div><h2 style="margin-bottom:18px;">Decisiones de ejecución · con responsable y fecha</h2>
+<div style="overflow:auto;max-height:64vh;">
+<table class="table">
+  <thead><tr><th>#</th><th>Decisión</th><th>Cuándo</th><th>Responsable</th></tr></thead>
+  <tbody>
+    <tr><td><b>1</b></td><td>Versión de modelo local para clasificación/extracción (Qwen2.5-7B vs 14B) y familia potente para resúmenes</td><td>Validar con la muestra (S1)</td><td>EDI</td></tr>
+    <tr><td><b>2</b></td><td>Campos de la fuente corporativa disponibles para el cruce (cuenta, contrato, titular, documento)</td><td>Días 7–10 (permisos de lectura)</td><td>ESI + deps RDB</td></tr>
+    <tr><td><b>3</b></td><td>Perfil exacto de solo lectura de Exchange (AppImpersonation vs Full Access RO vs Graph scoped)</td><td>Pre-arranque</td><td>ESI</td></tr>
+    <tr><td><b>4</b></td><td>Rutas de salida (CSV/vista BI) y periodicidad</td><td>Contrato día 2</td><td>ESI</td></tr>
+    <tr><td><b>5</b></td><td>Volumen real de cómputo y almacenamiento local a reservar con IT</td><td>Tras la muestra (S1)</td><td>ESI + EDI + IT</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="callout warn"><span class="ico">🚪</span><div><b>Las 2 que más mueven el plan:</b> la <b>decisión 1</b> (versión de modelo local) define el costo recurrente y la huella de cómputo; la <b>decisión 2</b> (campos de la fuente) define si el cruce valida con datos reales o de prueba. No dejarlas "pendiente eterno".</div></div>`,
+/* 21 DEFINICION DE DONE */
+()=>`<div class="kicker">Calidad</div><h2 style="margin-bottom:18px;">Definición de "done" técnica (kickoff interno)</h2>
+<div class="grid cols2">
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    ${[
+      "Corre dentro de la red local del cliente · solo lectura donde corresponde.",
+      "Tiene tests sobre data real o sintética marcada (filtro ≥90% ruido detectado, cruce contra casos conocidos).",
+      "Deja rastro: modelo_version / prompt_version / reglas versionadas / checksums."
+    ].map(t=>`<div class="card" style="padding:13px 16px;display:flex;gap:10px;align-items:center;"><span style="color:var(--good);font-weight:800;">✔</span><span style="font-size:.9rem;">${t}</span></div>`).join('')}
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    ${[
+      "Su salida alimenta el siguiente paso sin reprocesamiento manual.",
+      "Validado por una persona distinta a quien lo desarrolló (regla nadie valida lo que produce).",
+      "No escribe ni modifica nada fuera de su área (staging / decisiones)."
+    ].map(t=>`<div class="card" style="padding:13px 16px;display:flex;gap:10px;align-items:center;"><span style="color:var(--good);font-weight:800;">✔</span><span style="font-size:.9rem;">${t}</span></div>`).join('')}
+  </div>
+</div>
+<div class="callout" style="margin-top:14px;"><span class="ico">👥</span><div><b>Hito de entrada para cerrar "done":</b> el componente se considera entregado solo cuando una persona distinta validó su salida contra el criterio. ESI entrega → RDB/IT valida; EDI entrega → AF/cliente valida. Nadie juzga su propio trabajo.</div></div>`,
+/* 22 CIERRE */
+()=>`<div style="display:flex;flex-direction:column;justify-content:center;height:100%;">
+  <div class="kicker">Próximos pasos</div>
+  <h2>Siguientes pasos<br>del <span class="grad">equipo labIA</span></h2>
+  <div class="grid cols3" style="margin-top:26px;">
+    ${[
+      ["1 · Kickoff interno de ejecución","Asignar ESI/EDI a los componentes C1–C10 · nombrar dueños de update del seguimiento · fijar hitos de revisión internos (días 10/20/28)."],
+      ["2 · Preparación del pre-arranque (S0)","Entorno VPN, tablas staging, planilla golden set, templates de prompts · enviar a IT el pedido formal de muestra con la especificación del perfil de solo lectura."],
+      ["3 · Reservas con el cliente","Kickoff (día 1) · contrato de salida BI (día 2) · sesiones de etiquetado (días 3–9) · pedido de permisos DB (día 7)."]
+    ].map(([t,d])=>`<div class="card hover"><h3 style="color:var(--acc);margin-bottom:8px;">${t}</h3><p class="body" style="font-size:.88rem;">${d}</p></div>`).join('')}
+  </div>
+  <div class="callout acc" style="margin-top:22px;"><span class="ico">📌</span><div><b>Regla del arranque:</b> el cronograma de 4 semanas corre desde la firma. <b>Si la muestra no está al kickoff, se replanifica (pesimista) — nunca se comprime la validación para compensar.</b></div></div>
+</div>`
+];
+
+/* deck engine */
+const deck = document.getElementById('deck');
+let cur = 0, dir = 0;
+function build(){
+  const st = document.getElementById('stepper');
+  st.innerHTML = SLIDES.map(()=>`<span></span>`).join('');
+}
+function render(idx){
+  const s = document.createElement('section');
+  s.className = 'slide';
+  s.innerHTML = SLIDES[idx]();
+  deck.appendChild(s);
+  requestAnimationFrame(()=>{ s.classList.add('active'); });
+  return s;
+}
+function nav(d){
+  const next = cur + d;
+  if(next<0||next>=SLIDES.length) return;
+  cur = next;
+  deck.innerHTML='';
+  render(cur);
+  updateUI();
+}
+function updateUI(){
+  document.getElementById('counter').textContent = `${cur+1} / ${SLIDES.length}`;
+  document.getElementById('railFill').style.width = ((cur+1)/SLIDES.length*100)+'%';
+  const dots=[...document.querySelectorAll('#stepper span')];
+  dots.forEach((d,i)=> d.classList.toggle('on', i<=cur));
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' ') nav(1);
+  else if(e.key==='ArrowLeft') nav(-1);
+  else if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+});
+build();
+render(0);
+updateUI();
+</script>
+</body>
+</html>

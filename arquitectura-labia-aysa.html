@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Arquitectura labIA — Aysa</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --accent:#0e7c86; --accent2:#0b4f56; --muted:#5b6b7b; --line:#e2e8ee; --soft:#f5f8fa; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    color:#1c2733; line-height:1.62; font-size:13.5px; padding:36px 48px; max-width:920px; margin:0 auto; }
+  h1 { font-size:26px; color:var(--accent); margin:0 0 4px; letter-spacing:-.5px; }
+  h2 { font-size:17px; color:var(--accent2); margin:28px 0 10px; padding-bottom:6px;
+    border-bottom:2px solid var(--line); page-break-after:avoid; }
+  h3 { font-size:14px; color:var(--accent2); margin:18px 0 6px; }
+  p { margin:0 0 10px; }
+  strong { color:#0b4f56; }
+  hr { border:none; border-top:1px solid var(--line); margin:22px 0; }
+  blockquote { background:var(--soft); border-left:3px solid var(--accent); padding:10px 16px;
+    margin:10px 0 14px; border-radius:2px; page-break-inside:avoid; }
+  blockquote p { margin:0 0 7px; }
+  blockquote p:last-child { margin-bottom:0; }
+  code { background:#eef2f5; padding:1px 5px; border-radius:3px; font-size:.92em; color:#0b4f56;
+    font-family:'SF Mono',Menlo,Consolas,monospace; }
+  pre.code { background:#0f1722; color:#d7e2ef; border-radius:8px; padding:14px 18px; margin:12px 0 16px;
+    overflow-x:auto; font-size:12.3px; line-height:1.5; page-break-inside:avoid; }
+  pre.code code { background:transparent; padding:0; color:inherit; font-size:inherit; }
+  ul, ol { margin:2px 0 12px 22px; }
+  li { margin-bottom:5px; }
+  li input[type=checkbox] { margin-right:6px; }
+  .tblwrap { overflow-x:auto; margin:12px 0 16px; page-break-inside:avoid; }
+  table { border-collapse:collapse; width:100%; font-size:12.3px; }
+  th { background:#0e7c86; color:#fff; text-align:left; padding:8px 10px; font-weight:600; }
+  td { border:1px solid var(--line); padding:8px 10px; vertical-align:top; }
+  tr:nth-child(even) td { background:var(--soft); }
+  em { color:var(--muted); }
+  p strong code, li code, td code { background:#eef2f5; }
+  .kicker { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; font-weight:600; }
+  .clasif { display:inline-block; background:#0e7c86; color:#fff; font-size:11px; font-weight:700; letter-spacing:.5px;
+    padding:4px 12px; border-radius:20px; margin-bottom:8px; }
+</style>
+</head>
+<body>
+<div class="clasif">Confidencial · Uso interno labIA · No compartir con el cliente</div>
+<h1>Arquitectura técnica y plan de implementación labIA — Aysa · Calidad de Datos de Contacto</h1>
+<p><strong>Clasificación:</strong> Confidencial — <strong>uso interno del equipo labIA · Concentrix</strong></p>
+<p><strong>Proyecto:</strong> Aysa · Detección de inconsistencias en datos de contacto de campañas de comunicación</p>
+<p><strong>Estado:</strong> propuesta MVP aprobada → este documento define <strong>qué construye labIA, cómo y en qué orden</strong></p>
+<p><strong>Fecha:</strong> 15/09/2026 · Versión v0.1</p>
+<blockquote><p><strong>Para quién es este documento:</strong> únicamente el equipo de labIA que ejecuta el despliegue (ESI + EDI + liderazgo). No se comparte con el cliente. Todo lo que aparece acá es <strong>nuestra labor</strong>: arquitectura, componentes, modelo de datos, pipeline, validación técnica e infraestructura. Lo que depende del negocio de Aysa figura solo como <strong>dependencia de habilitación</strong> (insumo externo), nunca como contenido a desarrollar ni como narrativa comercial.<br><strong>Modelo de referencia:</strong> adaptación del <strong>patrón interno de labIA</strong> (despliegues on-prem previos del equipo): huella mínima, "piso en código" para lo exacto/auditable, IA para lo interpretativo/estructurado, model routing para controlar el costo de IA, 3 escenarios, seguridad en formato mínimo. El patrón reutilizable es: <strong>ingesta → normalización → reglas determinísticas → IA con schema estricto → juez → evidencia contra fuente de verdad → salidas/dashboard → log de auditoría</strong>.<br><strong>Files relacionados:</strong> <code>plan-4-semanas-aysa.md</code> (cronograma oficial con el cliente), <code>guion-presentacion-aysa.md</code> (discurso/demo), <code>estrategias-aysa.md</code> (business case, referencia interna de costos ARS).</p></blockquote>
+<hr>
+<h2>1 · Lo que labIA construye (en una frase)</h2>
+<p>Una tubería (pipeline) que <strong>lee una casilla de correo</strong> (solo lectura, dentro de la VPN), <strong>separa ruido de contenido útil</strong>, <strong>clasifica cada correo útil en una de 5 clases</strong>, <strong>extrae 8 campos de contacto</strong>, <strong>valida la extracción con un juez</strong>, <strong>cruza contra la base de datos relacional corporativa</strong> (evidencia determinística) y <strong>publica datasets por campaña</strong> con rastro de evidencia por fila + un tablero de métricas.</p>
+<p><strong>Regla transversal del diseño:</strong> la herramienta <strong>sustenta, no decide</strong>. Nada de lo que costruimos corrige, modifica o escribe en sistemas de origen o sobre los datos crudos.</p>
+<p><strong>Límites de lo que construimos (explícito):</strong></p>
+<ul><li>No escribimos en Exchange ni en la fuente corporativa (solo lectura).</li><li>No definimos el significado de cada clase de negocio (lo hace el área del cliente); nosotros definimos el <strong>schema técnico de salida</strong> y lo versionamos.</li><li>No reemplazamos ni tocamos procesos/productos actuales del cliente.</li></ul>
+<hr>
+<h2>2 · Arquitectura de referencia (alto nivel)</h2>
+<p>Modelo derivado del patrón interno de labIA: las capas son idénticas en patrón a otros despliegues on-prem del equipo, cambia el dominio (operaciones → correos de campaña).</p>
+<pre class="code"><code> CASILLA EXCHANGE (on-prem, red Ley 25.326)
+   │  EWS / Graph — usuario de servicio SOLO LECTURA (mínimo privilegio)
+   │  o importe PST (plan B de respaldo)
+   ▼
+[1 · INGESTA CONECTOR labIA]        → staging append-only en repositorio corporativo
+   │     incremental + dedupe (ItemId + SHA-256) · sello de integridad
+   ▼
+[2 · FILTRO DETERMINÍSTICO]         → reglas de código SIN IA: OOO · bounces · spam · vacíos
+   │     (no gasta cómputo de modelo)
+   ▼
+[3 · CLASIFICACIÓN + EXTRACCIÓN IA] → LLM con schema estricto + prompt por campo (Instructor/DocInfo)
+   │     salida JSON validada por código · campos ausentes marcados, nunca inventados
+   ▼
+[4 · JUEZ DE VALIDACIÓN]            → 2º pase sobre zona gris (~30% de casos), coherencia + formato
+   │     si no confirma → DUDOSO → cola de revisión humana
+   ▼
+[5 · NORMALIZACIÓN]                 → trim · mayúsculas · sin tildes · formatos cuenta/documento (versionado)
+   ▼
+[6 · CRUCE DETERMINÍSTICO]          → contra fuente de datos corporativa relacional (solo lectura)
+   │     evidencia: Coincide · No coincide · Requiere revisión (+ motivo)      ← sin IA
+   ▼
+[7 · SALIDAS + TABLERO]             → datasets por campaña (contrato BI) + evidencia por fila + dashboard
+   ▼
+[8 · LOG DE AUDITORÍA]              → quién vio qué · qué versión de modelo/prompt · firma humana del cierre</code></pre>
+<h3>Capas vs responsabilidad (corte del patrón interno de labIA)</h3>
+<div class="tblwrap"><table><thead><tr><th>Pieza</th><th>Tipo</th><th>Motivo</th></tr></thead><tbody><tr><td>Filtro de ruido · dedupe</td><td><strong>Código</strong></td><td>Determinístico, exacto, barato (no llama a modelo)</td></tr><tr><td>Normalización</td><td><strong>Código</strong></td><td>Reproducible y versionable; base de todo cruce</td></tr><tr><td>Clasificación / extracción</td><td><strong>IA (schema estricto)</strong></td><td>Interpretación de lenguaje natural; se la gobierna con JSON obligatorio</td></tr><tr><td>Juez de coherencia</td><td><strong>Código + IA</strong></td><td>Reglas de formato en código; contexto/coherencia con 2º pase del modelo</td></tr><tr><td>Cruce contra fuente corporativa</td><td><strong>Código (SQL/reglas)</strong></td><td>La evidencia debe ser reproducible y auditable: NUNCA IA</td></tr><tr><td>Datasets / dashboard</td><td><strong>Código</strong></td><td>Definidos por contrato BI; versionados</td></tr><tr><td>Log de auditoría</td><td><strong>Código</strong></td><td>Inmutable, no editable por nadie</td></tr></tbody></table></div>
+<hr>
+<h2>3 · Componentes a construir (nuestra labor, track ESI)</h2>
+<div class="tblwrap"><table><thead><tr><th>#</th><th>Componente</th><th>Detalle técnico</th><th>Entregable</th></tr></thead><tbody><tr><td>C1</td><td><strong>Conector Exchange</strong></td><td>EWS (<code>SyncFolderItems</code>, watermark) vía <code>exchangelib</code>/<code>ews-javascript-api</code>, o Graph API (<code>users/{casilla}/messages</code> + paginación) si M365/híbrido. Cuenta de servicio de mínimo privilegio (sin login interactivo, solo lectura). Autenticación Basic Auth sobre TLS 1.2 u OAuth según AD.</td><td>Servicio/worker de ingesta</td></tr><tr><td>C2</td><td><strong>Plan B PST</strong></td><td><code>New-MailboxExportRequest</code> para histórico si IT no habilita conexión directa; parser de <code>.pst</code>→<code>.eml/.msg</code>. Más lento, desbloquea el cronograma.</td><td>Importador batch</td></tr><tr><td>C3</td><td><strong>Dedupe + incremental</strong></td><td>Dedupe por <code>ItemId</code> (Exchange) + <code>SHA-256</code> del mensaje completo; cursor por watermark/<code>LastModifiedTime</code>; job cada 10–15 min o diario según volumen. Hash distinto → se marca revisado.</td><td>Lógica de idempotencia</td></tr><tr><td>C4</td><td><strong>Staging append-only</strong></td><td>Tablas <code>stg_email</code> y <code>stg_adjunto</code>; nunca se edita ni borra; cada relectura es fila nueva con checksum. Rastro de <code>created_at</code>/<code>processed_at</code>.</td><td>Tablas en repositorio corporativo</td></tr><tr><td>C5</td><td><strong>Filtro determinístico de ruido</strong></td><td>Reglas de código: asunto OOO, headers de "Delivery Status Notification", heurística spam/vacíos. <code>ruido=True</code> → fuera del pipeline del modelo.</td><td>Reglas + bitácoras</td></tr><tr><td>C6</td><td><strong>Salida del dataset técnico</strong></td><td>Schema JSON de salida + tabla <code>stg_extraccion</code> (ver sección 4).</td><td>Schema + tabla</td></tr><tr><td>C7</td><td><strong>Normalización</strong></td><td>trim, mayúsculas, sin tildes; formatos de cuenta y documento (ceros, guiones, espacios) versionados y aprobados contra la fuente por el lado del cliente.</td><td>Funciones + tablas de versiones</td></tr><tr><td>C8</td><td><strong>Cruce determinístico</strong></td><td>Stored proc/vista que hace JOIN con la fuente corporativa. Evidencia <code>Coincide / No coincide / Requiere revisión</code> con motivo. Nunca escribe ni actualiza la fuente.</td><td>Vista/SQL + reglas versionadas</td></tr><tr><td>C9</td><td><strong>Contrato de salida</strong></td><td>Esqueleto de la salida (CSV/vista BI) implementado desde la semana 1; formato definido con BI en el kickoff. Columnas, granularidad, periodicidad, publicación.</td><td>Vista <code>seg_campana</code> + export</td></tr><tr><td>C10</td><td><strong>Tablero de métricas</strong></td><td>Leading: precisión, % derivación, tiempo/caso. Lagging: inconsist. por origen, datasets entregados, horas liberadas. Publicado como página/vista interna.</td><td>Dashboard + views</td></tr></tbody></table></div>
+<hr>
+<h2>4 · Modelo de datos (esquema de staging propio de labIA)</h2>
+<h3>Ingesta</h3>
+<pre class="code"><code>-- stg_email
+email_id        int PK, item_id varchar UNIQUE, hash sha256,
+remitente, asunto, fecha_recibido datetime,
+tamano int, tiene_adjuntos bool, raw_path,
+created_at, processed_at
+
+-- stg_adjunto
+email_id int FK, nombre_archivo, formato, tamano, path</code></pre>
+<h3>Clasificación / extracción (schema técnico de salida del modelo)</h3>
+<pre class="code"><code>{
+  "clase": "CONFIRMA | NO_ES_MIA | DUDOSO | OPTOUT | IRRELEVANTE",
+  "campana": "string | null",
+  "contacto": {
+    "email": "string|null", "cuenta": "string|null", "nombre_apellido": "string|null",
+    "direccion": "string|null", "telefono": "string|null",
+    "documento_y_tipo": "string|null", "relacion_titular": "string|null",
+    "titular": "string|null"
+  },
+  "confianza": "0.0-1.0",
+  "razon": "string"
+}</code></pre>
+<ul><li>Si el JSON no parsea o no cumple el schema → <strong>resultado se rechaza</strong>, el caso pasa a revisión. Nunca se persiste JSON mal formado.</li><li>Campos ausentes → <code>null</code> explícito (nunca se inventa valor).</li></ul>
+<pre class="code"><code>-- stg_extraccion
+email_id FK, clase_pred, campana_pred,
+email, cuenta, nombre_apellido, direccion, telefono, documento_y_tipo, relacion_titular, titular,
+score, modelo_version, prompt_version, resultado_juez,
+created_at</code></pre>
+<h3>Evidencia y decisión</h3>
+<pre class="code"><code>-- seg_decision
+email_id, estado (Coincide/No coincide/Requiere revisión), motivo,
+id_fila_que_valido,      -- qué fila de la fuente sustentó el estado (evidencia)
+reviewer, reviewed_at    -- si fue revisado por humano
+
+-- seg_campana (dataset por campaña, formato BI)
+campaña, estado, cuenta_id, email_id, fecha, evidencia</code></pre>
+<hr>
+<h2>5 · Qué queda en IA y qué queda en código ("piso") — corte del patrón interno aplicado a Aysa</h2>
+<p>Este es el corte que nos protege de la objeción de exactitud y de auditoría:</p>
+<h3>Se delega a IA (interpretación + estructuración de texto)</h3>
+<ul><li><strong>Clasificar</strong> cada correo útil en una clase + asignación tentativa de campaña.</li><li><strong>Extraer</strong> los 8 campos de contacto desde el cuerpo/asunto.</li><li><strong>2º pase del juez</strong> sobre zona gris (coherencia, contradicciones internas: e.g. <code>CONFIRMA</code> sin contacto).</li><li><strong>Explicación/razón</strong> de cada clasificación (campo <code>razon</code>) y materiales de apoyo del equipo (agrupaciones, resúmenes).</li></ul>
+<h3>Se conserva en código (exactitud, repetibilidad, auditoría)</h3>
+<ul><li>Lectura de Exchange con usuario de solo lectura (C1, no escritura).</li><li>Filtro de ruido determinístico (C5).</li><li>Dedupe y dedupes/hash/integridad (C3).</li><li>Normalización (C7) y cruce contra la fuente corporativa (C8) — evidencia reproducible y auditable.</li><li>Log de auditoría inmutable + firma humana del cierre.</li></ul>
+<p><strong>Por qué:</strong> la clasificación/extracción de texto es una tarea interpretativa (ideal IA); la identificación de "coincide o no contra la base" es un problema de exactitud y registro (ideal reglas + SQL). El LLM <strong>sugiere</strong>, la regla <strong>confirma</strong>.</p>
+<hr>
+<h2>6 · Model routing y control del costo de IA</h2>
+<p>Aplicamos el mismo criterio del patrón interno de labIA (la IA ve lo necesario, no todo a precio alto):</p>
+<div class="tblwrap"><table><thead><tr><th>Tarea</th><th>Frecuencia</th><th>Modelo</th></tr></thead><tbody><tr><td>Filtro de ruido</td><td>— (no IA)</td><td>Código</td></tr><tr><td>Clasificación + extracción por email útil</td><td>Alta (1 por email)</td><td><strong>Liviano local</strong>: <code>Qwen2.5-7B/14B</code> self-host en la VPN del cliente, prompt por campo</td></tr><tr><td>Juez · 2º pase zona gris</td><td>Media (~30% de emails)</td><td>Liviano (misma familia)</td></tr><tr><td>Explicación/razón por caso</td><td>Alta</td><td>Liviano</td></tr><tr><td>Agrupación / resúmenes para revisión</td><td>Baja</td><td>Potente (si el pipeline lo requiere)</td></tr><tr><td>Materiales de informe de cierre</td><td>Muy baja</td><td>Potente</td></tr></tbody></table></div>
+<p><strong>Regla de consumo:</strong> el LLM no procesa el donde el filtro/código ya decidió. El recurrente de IA crece con los <strong>emails útiles + casos de la cola humana</strong>, y se estima solo después de la muestra real (semana 1). Sin muestra real no se emiten costos.</p>
+<p><strong>Nota de volumetría (para dimensionar cómputo):</strong> baseline ~50K emails históricos iniciales, % de utilidad a medir con la muestra (referencia a calibrar ~70% → ~35K útiles). Volumen anual recurrente bajo. Se procesa 1 embate: histórico en lote y recurrente en incremental.</p>
+<hr>
+<h2>7 · Infraestructura y despliegue (huella mínima)</h2>
+<h3>Dónde corre (decisión acordada con Aysa: local, sin nube)</h3>
+<div class="tblwrap"><table><thead><tr><th>Opción</th><th>Detalle</th></tr></thead><tbody><tr><td><strong>Local dentro de la VPN del cliente</strong></td><td>VM pequeña con el modelo (Qwen2.5-7B/14B) + base + servicios. Datos nunca salen de la red (Ley 25.326 sin transferencia de PII). Cómputo provisto por IT del cliente.</td></tr></tbody></table></div>
+<p>Decisión tomada con Aysa: <strong>todo corre local, sin nube</strong>. El dimensionamiento final se confirma en los <strong>días 16–20</strong> con el cómputo real medido sobre la muestra (no por preferencia), coordinado con IT del cliente.</p>
+<h3>Dimensionar huella (orientativo)</h3>
+<div class="tblwrap"><table><thead><tr><th>Escenario</th><th>Cómputo (self-host)</th><th>DB</th><th>Costo mensual ref.</th></tr></thead><tbody><tr><td>Pesimista (uso bajo)</td><td>2 vCPU · 8 GB RAM</td><td>100 GB · respaldo semanal</td><td>USD 100–150/mes</td></tr><tr><td>Base</td><td>4 vCPU · 16 GB RAM</td><td>300 GB · respaldo diario</td><td>USD 300–500/mes</td></tr><tr><td>Optimista (histórico completo + recurrente activo)</td><td>8–16 vCPU · 32 GB RAM</td><td>1 TB · respaldo diario + PITR</td><td>USD 800–1.500/mes</td></tr></tbody></table></div>
+<blockquote><p>Los números son de referencia de despliegues on-prem previos de labIA ajustados a un caso de correo+bases pequeñas; se calibran con la muestra real. Si el cliente prefiere self-host en infra propia, el costo fijo se traslada a su hardware.</p></blockquote>
+<h3>Seguridad en formato mínimo (misma garantía del patrón interno, aplicada aquí)</h3>
+<ul><li><strong>Única puerta de acceso:</strong> cuenta de servicio de solo lectura a Exchange; credenciales las crea TI del cliente; secreto en gestor de secretos de TI, jamás en código.</li><li><strong>Roles internos de labIA en el repositorio:</strong> lectura implícita para el pipeline; escritura solo a staging de labIA; nadie edita <code>seg_decision</code> una vez generado.</li><li><strong>Log de auditoría:</strong> cada cruce guarda <code>id_fila_que_valido</code>; cada cierre humano guarda reviewer + timestamp. Exportable para auditoría.</li><li><strong>Residencia/red:</strong> datos dentro de la VPN del cliente (local acordado, sin nube).</li></ul>
+<hr>
+<h2>8 · Plan de implementación labIA (pasos técnicos, sin narrativa comercial)</h2>
+<p>Basado en <code>plan-4-semanas-aysa.md</code>, pero acá <strong>solo nuestras tareas</strong>: las tareas de habilitación del cliente aparecen como "hitos de entrada" (🔒). Adaptación del flujo del patrón interno (relevamiento → conector → reglas → calibración → operar).</p>
+<div class="tblwrap"><table><thead><tr><th>Sesión</th><th>Tareas de labIA</th><th>Hito de entrada externo (🔒)</th><th>Entregable técnico</th></tr></thead><tbody><tr><td><strong>Pre-arranque (S0)</strong></td><td>Entorno VPN, tablas staging, planilla golden set (admin, no etiquetado), templates de prompts, reserva de sesiones</td><td>Coordinación: muestra real + acceso lectura (IT) · CMP aprueba PII</td><td>Entorno listo, planilla y templates v0</td></tr><tr><td><strong>Semana 1 (baseline e ingesta)</strong></td><td>Exploratorio con CSV de metadatos (volumen/año, campañas, % ruido, adjuntos, remitentes, incompletos) → doc "lectura de la casilla". Conector leyendo con dedupe + staging. Filtro determinístico v1. Esqueleto de salida (contrato BI)</td><td>Kickoff taxonomía (definición del negocio) · Firma contrato de salida BI (día 2)</td><td><code>% útil real</code>, conector activo, filtro v1, esqueleto salida</td></tr><tr><td><strong>Semana 2 (golden set, modelo, juez)</strong></td><td>Split 70/15/15 con <strong>test congelado</strong> (labIA custodia el set; el etiquetado lo hacen 2 personas del negocio, veridad técnica por <strong>kappa ≥ 0.8</strong>). Prompts por campo (schema estricto), primer modelo sobre train, juez de coherencia + umbrales, calidad sobre validation (90/95/&lt;30). Normalización v1.</td><td>Sesiones de etiquetado del negocio (días 3–9) · Permiso lectura DB corporativa (días 7–10) 🔒</td><td>Test congelado, modelo v1, juez, reglas de normalización, consulta a DB funcionando</td></tr><tr><td><strong>Semana 3 (cruce, evaluación final, datasets v1)</strong></td><td>Cruce determinístico contra DB (JOIN + normalización). Primer correo real de punta a punta. <strong>Evaluación final sobre test (nadie lo miró), 1ª corrida honesta</strong>. Cola humana: tiempo por caso. Cómputo real → dimensionamiento local con IT. Datasets v1 por campaña</td><td>RDB valida reglas de cruce</td><td>Evidencia por correo, resultados versionados, huella local confirmada, datasets v1</td></tr><tr><td><strong>Semana 4 (lote, docs, tablero, traspaso técnico)</strong></td><td>Procesar lote acotado (campañas priorizadas acordadas). Documentación técnica v1.0 versionada en repositorio del cliente. Tablero de actividades/métricas. Informe de cierre con escenarios. Entregables de traspaso</td><td>Firma del cierre (área de datos)</td><td>Datasets por campaña + evidencia + docs + dashboard + informe de cierre</td></tr></tbody></table></div>
+<p><strong>Criterios de aceptación técnicos por hito (nuestros, medibles):</strong></p>
+<ul><li>S0: se puede leer la muestra, cargar planilla y ejecutar prompts sin permisos pendientes.</li><li>S1: lote real leído sin duplicados, sin tocar la casilla; ≥90% del ruido conocido descartado; doc de lectura aprobado.</li><li>S2: kappa ≥ 0.8; test congelado fuera de alcance de todo ajuste; métricas sobre validation 90/95/&lt;30 o gap documentado con plan.</li><li>S3: primer correo de punta a punta validado; métricas finales sobre test; datasets v1 en formato firmado.</li><li>S4: lote procesado, documentación v1.0, dashboard publicado, 5 métricas cerradas, traspaso documentado.</li></ul>
+<hr>
+<h2>9 · Validación técnica y criterios de calidad (nuestro estándar de trabajo)</h2>
+<div class="tblwrap"><table><thead><tr><th>Criterio</th><th>Referencia</th><th>Cómo se mide</th><th>Quién mide/válida (interno)</th></tr></thead><tbody><tr><td>Precisión de clasificación</td><td>≥ 90%</td><td>Golden set de test (predicha vs oro)</td><td>EDI mide · AF del cliente valida (contraloría)</td></tr><tr><td>Precisión de extracción</td><td>≥ 95%</td><td>Campos correctos vs oro</td><td>EDI mide · cliente valida</td></tr><tr><td>Tasa de derivación a revisión</td><td>&lt; 30%</td><td>% casos a cola humana</td><td>EDI mide · cliente valida</td></tr><tr><td>Cobertura por campaña</td><td>≥ 95% emails útiles</td><td>Asignación correcta campaña/dataset</td><td>EDI mide · BI valida</td></tr><tr><td>Evidencia por email</td><td>100% · bloqueante</td><td>Rastro de cruce en cada fila</td><td>RDB/client valida · bloqueante</td></tr></tbody></table></div>
+<p><strong>Regla de integridad:</strong> nadie de labIA valida su propio output: EDI produce, el lado del cliente/af valida, y el test congelado garantiza que la métrica final es la de la primera corrida honesta (no hay tuning post-test).</p>
+<hr>
+<h2>10 · Riesgos técnicos (registro interno labIA) y mitigación</h2>
+<div class="tblwrap"><table><thead><tr><th>#</th><th>Riesgo técnico</th><th>Prob</th><th>Imp</th><th>Mitigación (acción de labIA)</th></tr></thead><tbody><tr><td>T1</td><td>Retro-extracción: el LLM alucina campos de contacto</td><td>Med</td><td>Alto</td><td>Schema estricto + prompt por campo + juez + golden set; <code>null</code> explícito; JSON inválido → revisión</td></tr><tr><td>T2</td><td>Exchange on-prem cambia a M365 / migración</td><td>Med</td><td>Med</td><td>Diseño agnóstico: mismo patrón con Graph API</td></tr><tr><td>T3</td><td>Dedupe no alcanza (emails idénticos legítimos o hash inestable)</td><td>Baja</td><td>Med</td><td>Dedupe por ItemId + hash; <code>processed_at</code> y relectura trazable</td></tr><tr><td>T4</td><td>Normalización no calza con la fuente (formatos de cuenta/documento)</td><td>Med</td><td>Med</td><td>Versionado de reglas; validación con RDB contra la fuente; casos a <code>Requiere revisión</code></td></tr><tr><td>T5</td><td>Acuerdo de etiquetado bajo 0.8 (el golden set no es consistente)</td><td>Med</td><td>Med</td><td>Reescribir definiciones con el negocio y re-etiquetar la franja (escenario pesimista)</td></tr><tr><td>T6</td><td>Test congelado contaminado (se usa para ajustar)</td><td>Baja</td><td>Alto</td><td>Custodia por labIA, fuera del de ajuste; métrica = 1ª corrida</td></tr><tr><td>T7</td><td>Cómputo local insuficiente para el volumen real</td><td>Med</td><td>Med</td><td>Dimensionar con cómputo real de la muestra (días 16–20) y reservar con IT del cliente</td></tr><tr><td>T8</td><td>Costo de IA recurrente fuera de rango</td><td>Med</td><td>Med</td><td>Model routing; IA solo sobre útiles + zona gris; escenarios anclados en baseline</td></tr><tr><td>T9</td><td>Permisos del entorno mal configurados (lectura/escritura indebida sobre fuentes)</td><td>Baja</td><td>Alto</td><td>Solo lectura, cuenta de servicio mínimo privilegio, secretos en gestor del cliente, revisión en hitos 10/20</td></tr></tbody></table></div>
+<p><strong>Hitos de revisión internos labIA:</strong> día 10, día 20 y revisión final (día 28), con el registro vivo arriba.</p>
+<hr>
+<h2>11 · Decisiones técnicas abiertas (a resolver en el equipo labIA)</h2>
+<ol><li><strong>Versión de modelo local para clasificación/extracción:</strong> <code>Qwen2.5-7B</code> vs <code>14B</code> y familia potente para resúmenes — validar disponibilidad local y calidad de extracción en la muestra. <strong>Responsable: EDI.</strong></li><li><strong>Campos de la fuente corporativa disponibles para el cruce</strong> (tablas/permisos de lectura: cuenta, contrato, titular, documento). Sin esto el cruce usa datos de prueba. <strong>Responsable: ESI (spec de acceso) + deps RDB.</strong></li><li><strong>Especificación exacta del perfil de solo lectura de Exchange</strong> (EWS ApplicationImpersonation vs Full Access read-only vs Graph scoped). <strong>Responsable: ESI.</strong></li><li><strong>Rutas de salida (CSV/vista BI) y periodicidad</strong> — se cierra con el contrato de salida el día 2. <strong>Responsable: ESI.</strong></li><li><strong>Volumen real de cómputo y almacenamiento local</strong> — se estima con la muestra real (S1) y se reserva con IT. <strong>Responsable: ESI + EDI + IT.</strong></li></ol>
+<hr>
+<h2>12 · Definición de "done" técnica (para el kickoff interno)</h2>
+<p>Cada componente se considera "done" solo si:</p>
+<ul><li>[ ] Corre dentro de la VPN / entorno local del cliente, solo lectura donde corresponde.</li><li>[ ] Tiene tests sobre data real o sintética marcada (filtro ≥90% ruido detectado, cruce contras casos conocidos).</li><li>[ ] Deja rastro: <code>modelo_version</code> / <code>prompt_version</code> / reglas versionadas / checksums.</li><li>[ ] Su salida alimenta el siguiente paso sin reprocesamiento manual.</li><li>[ ] Fue validado por una persona distinta a quien lo desarrolló (regla "nadie valida lo que produce").</li><li>[ ] No escribe ni modifica nada fuera de su área (staging/decisiones).</li></ul>
+<hr>
+<h2>Anexo A · Patrón de referencia interno de labIA</h2>
+<p>Elementos del patrón que se reutilizan en Aysa (estándar interno del equipo en despliegues on-prem): ingesta desde el sistema de origen en solo lectura; motor de reglas determinístico (filtro + normalización + cruce con evidencia); clasificación/extracción con schema estricto (LLM) y prompt por campo; juez + cola humana con firma; model routing barato/potente; huella mínima (1 VM + 1 DB); 3 escenarios de costo anclados en baseline; log de auditoría inmutable + solo lectura; piloto acotado con informe de cierre.</p>
+<p><strong>Diferencia clave de dominio en Aysa:</strong> a diferencia de otros despliegues internos donde la IA solo explica alertas (las detecta la regla), acá la IA <strong>sí clasifica y estructura el texto</strong> (es el core) — el cruce determinístico aporta la evidencia de identidad. Por eso el LLM corre sobre los emails <strong>útiles</strong> (ya filtrados), nunca sobre todo el ruido.</p>
+</body>
+</html>

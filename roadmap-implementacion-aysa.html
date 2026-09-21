@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap por rol y semana — labIA · Aysa</title>
+<style>
+  :root {
+    --bg:#070b14; --bg2:#0b1220; --card:#101a2c; --card2:#16233a;
+    --line:#1f3050; --txt:#eaf1fb; --muted:#8ba3c7; --dim:#5c7399;
+    --acc:#2fd0ff; --acc2:#7d8bff; --good:#2fd39a; --warn:#ffc75e; --bad:#ff6b8b;
+    --grad:linear-gradient(135deg,#2fd0ff,#7d8bff);
+    --shadow:0 20px 50px rgba(0,0,0,.45);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body { background:#06090f; color:var(--txt); font-family:'Segoe UI',-apple-system,Roboto,Helvetica,Arial,sans-serif; overflow:hidden; }
+  .bgfx { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .bgfx::before { content:""; position:absolute; inset:0;
+    background-image:linear-gradient(rgba(47,208,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(47,208,255,.05) 1px,transparent 1px);
+    background-size:56px 56px; mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 75%); }
+  .bgfx .glow1 { position:absolute; top:-20%; left:-10%; width:60vw; height:60vw; background:radial-gradient(circle,rgba(47,208,255,.18),transparent 65%); filter:blur(10px); border-radius:50%; }
+  .bgfx .glow2 { position:absolute; bottom:-25%; right:-10%; width:70vw; height:70vw; background:radial-gradient(circle,rgba(125,139,255,.16),transparent 65%); filter:blur(10px); border-radius:50%; }
+
+  .deck { position:relative; z-index:1; height:100vh; width:100%; }
+  .slide { position:absolute; inset:0; padding:6vh 5vw; opacity:0; transform:translateX(40px) scale(.985); pointer-events:none;
+    transition:opacity .5s ease, transform .55s cubic-bezier(.16,1,.3,1); overflow:hidden; }
+  .slide.active { opacity:1; transform:none; pointer-events:auto; }
+  .slide.n-enter { transform:translateX(40px) scale(.985); }
+  .slide.p-enter { transform:translateX(-40px) scale(.985); }
+
+  .topbar { position:fixed; top:0; left:0; right:0; z-index:30; display:flex; align-items:center; gap:18px; padding:16px 28px; font-size:.78rem; color:var(--muted); }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.5px; color:var(--txt); }
+  .brand .dot { width:11px; height:11px; border-radius:4px; background:var(--grad); box-shadow:0 0 14px rgba(47,208,255,.7); }
+  .brand .sub { color:var(--dim); font-weight:500; }
+  .rail { flex:1; height:3px; background:var(--line); border-radius:3px; overflow:hidden; }
+  .rail i { display:block; height:100%; background:var(--grad); width:0; transition:width .4s ease; }
+  .stepper { display:flex; gap:4px; }
+  .stepper span { width:4px; height:14px; border-radius:3px; background:var(--line); transition:background .3s; }
+  .stepper span.on { background:var(--acc); }
+
+  .kicker { font-size:.7rem; letter-spacing:2.5px; text-transform:uppercase; color:var(--acc); font-weight:700; margin-bottom:12px; }
+  .kicker.warn { color:var(--warn); }
+  h1 { font-size:clamp(2.4rem,5vw,3.8rem); line-height:1.03; font-weight:800; letter-spacing:-1px; }
+  h1 .grad { background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h2 { font-size:clamp(1.5rem,2.8vw,2.3rem); font-weight:800; letter-spacing:-.5px; line-height:1.08; }
+  h3 { font-size:1.02rem; font-weight:700; }
+  p.lead { font-size:clamp(.9rem,1.3vw,1.1rem); color:var(--muted); line-height:1.55; }
+  p.body { font-size:.9rem; color:var(--muted); line-height:1.55; }
+
+  .grid { display:grid; gap:14px; }
+  .cols2 { grid-template-columns:1fr 1fr; }
+  .cols3 { grid-template-columns:repeat(3,1fr); }
+  .cols4 { grid-template-columns:repeat(4,1fr); }
+  .card { background:linear-gradient(160deg,var(--card),var(--bg2)); border:1px solid var(--line); border-radius:16px; padding:16px; box-shadow:var(--shadow); }
+  .card.hover { transition:transform .3s,border-color .3s; }
+  .card.hover:hover { transform:translateY(-6px); border-color:var(--acc); }
+  .num { font-size:1.9rem; font-weight:800; background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .num.sm { font-size:1.3rem; }
+  .label { color:var(--dim); font-size:.72rem; text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-bottom:5px; }
+  .pill { display:inline-block; padding:3px 12px; border-radius:30px; font-size:.7rem; font-weight:700; }
+  .p-good{background:rgba(47,211,154,.14);color:var(--good);} .p-warn{background:rgba(255,199,94,.14);color:var(--warn);} .p-bad{background:rgba(255,107,139,.14);color:var(--bad);} .p-acc{background:rgba(47,208,255,.14);color:var(--acc);}
+  .table { width:100%; border-collapse:collapse; font-size:.82rem; }
+  .table th { text-align:left; color:var(--dim); font-size:.66rem; text-transform:uppercase; letter-spacing:1px; padding:8px 10px; border-bottom:1px solid var(--line); }
+  .table td { padding:9px 10px; border-bottom:1px solid rgba(31,48,80,.5); font-size:.84rem; vertical-align:top; }
+  .table tr:hover td { background:rgba(47,208,255,.04); }
+  .mono { font-family:'SF Mono',Menlo,Consolas,monospace; color:var(--acc); font-size:.8rem; }
+  .divider { height:1px; background:var(--line); margin:16px 0; }
+  .flow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .flow .step { background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:7px 13px; font-size:.8rem; font-weight:600; }
+  .flow .step.code { border-color:var(--good); color:var(--good); }
+  .flow .arr { color:var(--acc); font-weight:700; }
+
+  .btn { position:fixed; bottom:26px; z-index:30; width:50px; height:50px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(16,26,44,.7); color:var(--txt); font-size:1.3rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:all .25s; backdrop-filter:blur(8px); }
+  .btn:hover { background:var(--acc); border-color:var(--acc); color:#06101a; box-shadow:0 0 20px rgba(47,208,255,.5); }
+  .btn.prev { left:26px; }
+  .btn.next { right:26px; }
+  .counter { position:fixed; bottom:34px; left:50%; transform:translateX(-50%); z-index:30; font-size:.78rem; color:var(--dim); letter-spacing:1px; }
+  .keys { position:fixed; bottom:8px; right:16px; z-index:30; font-size:.66rem; color:var(--dim); }
+
+  .callout { display:flex; gap:14px; align-items:flex-start; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--good); border-radius:14px; padding:14px 16px; margin-top:16px; }
+  .callout.acc { border-left-color:var(--acc); } .callout.warn { border-left-color:var(--warn); }
+  .callout .ico { font-size:1.3rem; }
+  .callout b { color:var(--txt); }
+  .callout p { color:var(--muted); font-size:.88rem; }
+  .foot { position:absolute; bottom:2vh; font-size:.7rem; color:var(--dim); }
+  .chip { display:inline-block; background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:3px 10px; font-size:.72rem; margin:2px 3px 2px 0; color:var(--muted); }
+  .chip b { color:var(--txt); }
+  .step-no { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:7px; background:var(--grad); color:#06101a; font-weight:800; font-size:.8rem; margin-right:7px; }
+  .role { display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:.78rem; border-radius:8px; padding:2px 10px; white-space:nowrap; }
+  .role.esi { background:rgba(47,208,255,.12); color:var(--acc); border:1px solid rgba(47,208,255,.35); }
+  .role.edi { background:rgba(125,139,255,.12); color:var(--acc2); border:1px solid rgba(125,139,255,.35); }
+  .role.af  { background:rgba(255,199,94,.12); color:var(--warn); border:1px solid rgba(255,199,94,.35); }
+  .role.rdb { background:rgba(47,211,154,.12); color:var(--good); border:1px solid rgba(47,211,154,.35); }
+  .role.it  { background:rgba(255,107,139,.12); color:var(--bad); border:1px solid rgba(255,107,139,.35); }
+  .role.sp  { background:rgba(47,208,255,.12); color:var(--acc); border:1px solid rgba(47,208,255,.35); }
+  .weektag { display:inline-block; padding:2px 10px; border-radius:8px; font-weight:800; font-size:.72rem; letter-spacing:1px; }
+  .w-s0{background:rgba(255,107,139,.14);color:var(--bad);} .w-s1{background:rgba(255,199,94,.14);color:var(--warn);}
+  .w-s2{background:rgba(125,139,255,.14);color:var(--acc2);} .w-s3{background:rgba(47,208,255,.14);color:var(--acc);}
+  .w-s4{background:rgba(47,211,154,.14);color:var(--good);}
+  .ap { color:var(--dim); font-size:.7rem; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="bgfx"><div class="glow1"></div><div class="glow2"></div></div>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>labIA <span class="sub">· Aysa · Roadmap por rol y semana</span></div>
+  <div class="rail"><i id="railFill"></i></div>
+  <div class="stepper" id="stepper"></div>
+</div>
+
+<div class="deck" id="deck"></div>
+
+<div class="counter" id="counter"></div>
+<button class="btn prev" onclick="nav(-1)">‹</button>
+<button class="btn next" onclick="nav(1)">›</button>
+<div class="keys">← → navegar · F = fullscreen</div>
+
+<script>
+const SLIDES = [
+/* 1 PORTADA */
+()=>`<div style="display:flex;flex-direction:column;justify-content:center;height:100%;max-width:1050px;">
+  <div class="kicker" style="font-size:.8rem;">Uso interno labIA · no se comparte con el cliente</div>
+  <h1>Roadmap de actividades<br>por <span class="grad">rol y semana</span></h1>
+  <p class="lead" style="margin-top:20px;max-width:820px;">Quién hace qué, en qué semana y con qué día objetivo en el despliegue del MVP de calidad de datos de contacto para Aysa. Compañero del deck de plan de trabajo (láminas de plan S0–S4) y del documento de arquitectura: traduce la sección 8 a una matriz <b style="color:var(--txt)">semana × rol</b> con criterios de aceptación por hito.</p>
+  <div class="grid cols4" style="margin-top:30px;">
+    ${[
+      ["4 semanas","Base · optimista 3 · pesimista 6"],
+      ["10 componentes","C1–C10 en 8 capas"],
+      ["2 roles internos","ESI + EDI (producción/validación cruzada)"],
+      ["Local, sin nube","Qwen2.5-7B/14B self-host en la VPN de Aysa"]
+    ].map(([n,d])=>`<div class="card hover"><div class="num sm">${n}</div><p class="label" style="margin-top:6px;">${d}</p></div>`).join('')}
+  </div>
+  <div class="callout acc"><span class="ico">⚙</span><div><b>Regla que ordena todo:</b> <span style="color:var(--txt);font-weight:700;">nadie valida lo que produce</span> — ESI/EDI entregan, AF/RDB/IT validan. El test congelado queda bajo custodia de labIA y la validación final es la <b>primera corrida honesta</b>.</div></div>
+</div>`,
+/* 2 ROLES */
+()=>`<div>
+  <div class="kicker">Quiénes trabajan el roadmap</div>
+  <h2>Roles sin ambigüedad</h2>
+  <div class="tableWrap" style="margin-top:18px;max-height:63vh;overflow:auto;">
+  <table class="table">
+    <tr><th>Rol</th><th>Track</th><th>Qué construye / habilita</th><th>Qué valida</th></tr>
+    ${[
+      ["ESI","Integración","C1–C5, C7, C8, C9: conector, staging, filtro, normalización, cruce, contrato de salida, despliegue local","IT / RDB / AF"],
+      ["EDI","Datos e IA","C6, juez, golden set, model routing, calidad y tablero, informe de cierre","AF / RDB"],
+      ["AF","Contraparte negocio","Taxonomía (día 1), contrato de salida, etiquetado doble, cola humana","Valida golden set, umbrales y datasets"],
+      ["RDB","Contraparte datos","Formato de salida (día 2), lectura de la fuente corporativa, calidad del cruce/dataset","Valida reglas de cruce, formato y evidencia"],
+      ["IT","Habilitación","Muestra + acceso lectura, cuenta de mínimo privilegio, cómputo local","Habilita entregables (🔒)"],
+      ["CMP","Habilitación","Tratamiento de PII · Ley 25.326, esquema de datos, residencia local","Aprueba habilitaciones (🔒)"],
+      ["SP","Decisión","Alcance acotado, kickoff, revisiones de hito 10/20/28, firma del cierre","Preside las revisiones de hito"]
+    ].map(([r,tr,qv,v])=>`<tr><td><span class="role ${r.toLowerCase()==='esp'?'esi':r.toLowerCase()}">${r}</span></td><td>${tr}</td><td style="font-size:.8rem;">${qv}</td><td style="font-size:.8rem;color:var(--muted);">${v}</td></tr>`).join('')}
+  </table>
+  </div>
+  <div class="callout warn"><span class="ico">▲</span><div><b>Por qué importa:</b> la regla de oro de la prueba es la separación. El EDI mide la precisión; el AF confirma esa medición contra el golden set. <b>Nadie es juez de su propio trabajo</b>.</div></div>
+</div>`,
+/* 3 MATRIZ SEMANA x ROL */
+()=>`<div>
+  <div class="kicker">Matriz resumen</div>
+  <h2 style="margin-bottom:16px;">Semana × rol en un vistazo</h2>
+  <div class="tableWrap" style="max-height:58vh;overflow:auto;">
+  <table class="table">
+    <tr><th>Actividad clave</th><th><span class="weektag w-s0">S0</span></th><th><span class="weektag w-s1">S1</span></th><th><span class="weektag w-s2">S2</span></th><th><span class="weektag w-s3">S3</span></th><th><span class="weektag w-s4">S4</span></th></tr>
+    ${[
+      ["ESI","Entorno VPN + staging + pedido muestra/acceso","Conector dedupe + filtro v1 + esqueleto salida","Normalización v1 + lectura DB 🔒","Cruce + 1er correo E2E","Lote acotado + docs v1.0"],
+      ["EDI","Planilla golden set + templates prompts","% útil real + kickoff taxonomía","Test congelado + modelo/juez 90/95/<30","Examen final sobre test + cómputo real","Tablero + informe 3 escenarios"],
+      ["AF","Valida muestra + alcance","Taxonomía (d1) + etiquetado (d3–5)","Etiquetado (d6–9) + umbrales","Contraloría test + cola humana","Valida datasets + traspaso"],
+      ["RDB","Aprueba staging","Contrato de salida BI (d2)","Solicita lectura DB 🔒","Valida cruce + datasets v1","Aprueba docs + calidad"],
+      ["IT","Muestra + cuenta + cómputo","—","Habilita lectura DB 🔒","Confirma cómputo real","Revisa documentación"],
+      ["CMP / SP","CMP: PII · SP: alcance","SP+RDB aprueban esquema","—","CMP: residencia local","SP: revisión 28 + firma"]
+    ].map(([r,...cells])=>`<tr><td style="white-space:nowrap;"><b>${r}</b></td>${cells.map(c=>`<td style="font-size:.78rem;">${c}</td>`).join('')}</tr>`).join('')}
+  </table>
+  </div>
+  <div class="callout"><span class="ico">✓</span><div><b>Hitos de revisión internos labIA:</b> día 10 · día 20 · día 28, con el registro de riesgos vivo en cada hito (responsable: liderazgo labIA).</div></div>
+</div>`,
+/* 4 S0 */
+()=>`<div>
+  <div class="kicker"><span class="weektag w-s0">S0</span> Pre-arranque en paralelo <span class="pill p-bad" style="margin-left:6px;">Condición de entrada</span></div>
+  <h2 style="margin-bottom:14px;">Semana 0 · dejar todo listo antes del día 1</h2>
+  <p class="body" style="margin-bottom:12px;">Ocurre en paralelo a la aprobación formal. <b style="color:var(--txt);">Si la muestra o el acceso no están al día 1, se mueve el plan entero (escenario pesimista) — no se arranca sobre supuestos.</b></p>
+  <table class="table">
+    <tr><th>Rol</th><th>Actividad</th><th>Entregable</th><th>Dependencia / coordinación</th></tr>
+    ${[
+      ["esi","Entorno en la VPN: carpeta de trabajo, tablas stg_email/stg_adjunto, acceso al repositorio corporativo","Entorno listo","RDB aprueba staging · IT confirma VPN"],
+      ["esi","Pedido formal a IT de muestra (~300–600 correos: años, campañas y ruido) + spec de perfil de solo lectura (EWS impersonation / Full Access read-only / Graph scoped)","Pedido + spec de acceso","IT entrega muestra + cuenta antes del día 1 🔒"],
+      ["esi","Importador PST como plan B si IT no habilita conexión directa (nunca se borra ni modifica la casilla)","Importador batch (respaldo)","IT define EWS vs PST"],
+      ["edi","Planilla del golden set con validaciones (clases, email_id única, obligatorios) + templates de prompts por campo v0","Planilla + templates v0","AF confirma campos de negocio"],
+      ["esi+edi","Reservar sesiones: kickoff (día 1), contrato salida (día 2), etiquetado doble (días 3–9)","Calendario de sesiones","AF/RDB/IT confirman disponibilidad"],
+      ["af","Definir alcance acotado: 2–3 campañas priorizadas para datasets de la ventana","Alcance firmado por SP","SP decide"],
+      ["cmp","Aprobar esquema de datos y tratamiento de PII (los datos no salen de la red)","Habilitación CMP 🔒","—"]
+    ].map(([r,a,e,d])=>`<tr><td style="white-space:nowrap;"><span class="role ${r}">${r.toUpperCase()}</span></td><td style="font-size:.8rem;">${a}</td><td style="font-size:.8rem;color:var(--muted);">${e}</td><td style="font-size:.78rem;color:var(--muted);">${d}</td></tr>`).join('')}
+  </table>
+  <div class="callout acc"><span class="ico">✓</span><div><b>Criterio de aceptación de S0:</b> al día 1 se puede <b>leer la muestra</b>, <b>cargar la planilla</b> del golden set y <b>sentarse con las áreas sin permisos pendientes</b>.</div></div>
+</div>`,
+/* 5 S1 */
+()=>`<div>
+  <div class="kicker"><span class="weektag w-s1">S1</span> Baseline e ingesta · días 1–5</div>
+  <h2 style="margin-bottom:14px;">Confirmar el problema con datos reales</h2>
+  <table class="table">
+    <tr><th>Rol</th><th>Actividad</th><th>Días</th><th>Quién valida</th></tr>
+    ${[
+      ["edi + af + sp","Kickoff (½ jornada): plan, roles, regla nadie valida lo que produce. Workshop de taxonomía: definición operativa + 3–5 ejemplos reales + quién revisa (regla de control 8/10 de coincidencia)","Día 1","SP + RDB"],
+      ["esi + rdb","Contrato de salida con BI: columnas, granularidad, periodicidad, publicación. Borrador configurable solo ante hallazgos de la muestra","Día 2","RDB + AF"],
+      ["edi","Exploratorio lectura de la casilla: correos por año/mes (valida ~50K), campañas, % ruido, adjuntos, remitentes, incompletos → % útil real","Días 1–3","AF"],
+      ["esi","Conector EWS/Graph con incremental + dedupe (ItemId + SHA-256) y staging append-only; prueba con la muestra","Días 2–5","IT + RDB"],
+      ["esi","Filtro determinístico de ruido SIN IA: OOO, bounces, spam, vacíos","Días 2–5","AF"],
+      ["esi","Esqueleto de la salida del dataset (CSV/vista BI) según contrato del día 2","Días 2–5","RDB"],
+      ["af + edi","Arranque del doble etiquetado (~300 correos: clase + campos + confianza); EDI mide acuerdo (objetivo ≥ 0.8)","Días 3–5","EDI + AF"]
+    ].map(([r,a,d,v])=>`<tr><td style="white-space:nowrap;"><span class="role ${r.split(' + ')[0]}">${r.toUpperCase()}</span></td><td style="font-size:.8rem;">${a}</td><td class="ap">${d}</td><td style="font-size:.78rem;color:var(--muted);">${v}</td></tr>`).join('')}
+  </table>
+  <div class="callout acc"><span class="ico">✓</span><div><b>Criterio de aceptación de S1:</b> lote real leído <b>sin duplicados y sin tocar la casilla</b> · <b>≥90% del ruido conocido de la muestra descartado</b> · documento con % útil real aprobado por el negocio.</div></div>
+</div>`,
+/* 6 S2 */
+()=>`<div>
+  <div class="kicker"><span class="weektag w-s2">S2</span> Golden set, modelo y juez · días 6–12</div>
+  <h2 style="margin-bottom:14px;">Completar el examen y habilitar la evidencia</h2>
+  <table class="table">
+    <tr><th>Rol</th><th>Actividad</th><th>Días</th><th>Quién valida</th></tr>
+    ${[
+      ["af + edi","Completar el doble etiquetado (~300), resolver discrepancias con un tercero, medir acuerdo final (kappa ≥ 0.8)","Días 6–9","EDI + AF"],
+      ["edi","División 70/15/15: el test queda congelado bajo custodia de labIA, fuera de todo ajuste","Días 8–9","EDI custodia · AF contraloría"],
+      ["edi","Prompt por campo con JSON obligatorio (schema estricto) + primer modelo sobre train (Qwen2.5-7B/14B local) + revisión de errores con AF","Días 6–11","AF + EDI"],
+      ["edi + af","Juez de coherencia (2º pase ~30% zona gris): si no confirma → DUDOSO → cola humana. Ajustar y versionar umbrales","Días 9–12","AF"],
+      ["edi","Pipeline sobre validation: clasificación ≥ 90% · extracción ≥ 95% · derivación < 30% (o gap documentado con plan)","Días 11–12","AF contra el golden set"],
+      ["esi","Reglas de normalización v1: trim, mayúsculas, sin tildes, formatos de cuenta/documento (versionadas)","Días 7–10","RDB"],
+      ["esi + rdb + it","Adelantar permiso de lectura de la fuente corporativa (mínimo privilegio): RDB solicita día 7 · IT habilita · ESI confirma consulta real","Días 7–10","IT + CMP + RDB"]
+    ].map(([r,a,d,v])=>`<tr><td style="white-space:nowrap;"><span class="role ${r.split(' + ')[0]}">${r.toUpperCase()}</span></td><td style="font-size:.8rem;">${a}</td><td class="ap">${d}</td><td style="font-size:.78rem;color:var(--muted);">${v}</td></tr>`).join('')}
+  </table>
+  <div class="callout acc"><span class="ico">✓</span><div><b>Criterio de aceptación de S2:</b> kappa ≥ 0.8 · test congelado <b>fuera del alcance de todo ajuste</b> · 90/95/&lt;30 sobre validation o gap documentado · <b>lectura DB funcionando al día 10</b>.</div></div>
+</div>`,
+/* 7 S3 */
+()=>`<div>
+  <div class="kicker"><span class="weektag w-s3">S3</span> Cruce, examen final y datasets v1 · días 12–21</div>
+  <h2 style="margin-bottom:14px;">Evidencia, examen honesto y primeras salidas</h2>
+  <table class="table">
+    <tr><th>Rol</th><th>Actividad</th><th>Días</th><th>Quién valida</th></tr>
+    ${[
+      ["esi","Cruce determinístico contra la fuente (JOIN + normalización, sin IA): evidencia Coincide / No coincide / Requiere revisión + motivo + id_fila_que_valido","Días 12–15","RDB + AF"],
+      ["esi + edi + af","Primer correo real de punta a punta: conector → filtro → clasificación → extracción → normalización → cruce → dataset","Día 15","AF + RDB"],
+      ["edi","Examen final sobre el test congelado (nadie lo miró): clasificación, extracción, derivación, cobertura. El reportado es el de la primera corrida honesta","Días 16–18","AF contraloría"],
+      ["edi + af","Revisión de la cola humana: ¿los casos dudosos son razonables? Tiempo por caso","Días 16–20","AF"],
+      ["edi + it","Medir cómputo real de la muestra y dimensionar el despliegue local (decisión con dato real, no por preferencia) · CMP confirma residencia local","Días 16–20","IT + CMP"],
+      ["esi + rdb","Datasets v1 por campaña priorizada en formato firmado con evidencia por fila; ajustar desvíos del contrato","Días 18–21","RDB + AF"]
+    ].map(([r,a,d,v])=>`<tr><td style="white-space:nowrap;"><span class="role ${r.split(' + ')[0]}">${r.toUpperCase()}</span></td><td style="font-size:.8rem;">${a}</td><td class="ap">${d}</td><td style="font-size:.78rem;color:var(--muted);">${v}</td></tr>`).join('')}
+  </table>
+  <div class="callout acc"><span class="ico">✓</span><div><b>Criterio de aceptación de S3:</b> un correo real recorrió todo el pipeline validado por el negocio · métricas finales sobre un set congelado · datasets v1 en formato firmado con evidencia por fila.</div></div>
+</div>`,
+/* 8 S4 */
+()=>`<div>
+  <div class="kicker"><span class="weektag w-s4">S4</span> Lote, documentación, tablero y traspaso · días 22–28</div>
+  <h2 style="margin-bottom:14px;">Consolidar, documentar y entregar</h2>
+  <table class="table">
+    <tr><th>Rol</th><th>Actividad</th><th>Días</th><th>Quién valida</th></tr>
+    ${[
+      ["esi + edi","Procesar el lote acotado (correos útiles de las campañas priorizadas) con el pipeline final; datasets con evidencia por fila","Días 22–25","RDB + AF"],
+      ["esi","Documentación técnica v1.0: conector, staging, filtro, normalización, cruce (versiones + checksums)","Días 23–26","IT + RDB"],
+      ["edi","Documentación v1.0: esquema, prompts, juez y umbrales","Días 23–26","AF"],
+      ["edi","Tablero de actividades/métricas: leading (precisión, % derivación, tiempo/caso) + lagging (inconsistencias por origen, datasets, horas liberadas)","Días 23–26","RDB + AF"],
+      ["edi","Informe de cierre con 3 escenarios (pesimista/base/optimista) anclados en el baseline + registro de riesgos actualizado","Días 26–28","AF + RDB"],
+      ["esi + edi + af + sp","Show & tell · traspaso de la operación al área de datos/BI · firma del cierre · desvíos documentados si los hubo","Día 28","SP firma"]
+    ].map(([r,a,d,v])=>`<tr><td style="white-space:nowrap;"><span class="role ${r.split(' + ')[0]}">${r.toUpperCase()}</span></td><td style="font-size:.8rem;">${a}</td><td class="ap">${d}</td><td style="font-size:.78rem;color:var(--muted);">${v}</td></tr>`).join('')}
+  </table>
+  <div class="callout acc"><span class="ico">✓</span><div><b>Criterio de aceptación de S4:</b> lote procesado dentro de la ventana · documentación v1.0 aprobada y publicada · tablero publicado · traspaso documentado y firma del cierre.</div></div>
+</div>`,
+/* 9 VISTA POR ROL */
+()=>`<div>
+  <div class="kicker">Vista por rol</div>
+  <h2 style="margin-bottom:16px;">Qué le toca a cada uno en el mes</h2>
+  <div class="grid cols2">
+    ${[
+      ["esi","ESI · Integración y despliegue (C1–C5, C7, C8, C9)",[
+        "S0 · Entorno VPN + staging + pedido de muestra/acceso + plan B PST",
+        "S1 · Conector con dedupe e incremental + filtro de ruido v1 + esqueleto de salida",
+        "S2 · Normalización v1 + confirmar lectura de la fuente corporativa (días 7–10 🔒)",
+        "S3 · Cruce determinístico + primer correo E2E + datasets v1",
+        "S4 · Lote acotado + documentación técnica v1.0 + soporte al show & tell"
+      ]],
+      ["edi","EDI · Datos e IA (C6, juez, golden set, routing, calidad)",[
+        "S0 · Planilla golden set + templates de prompts v0",
+        "S1 · Exploratorio % útil real + kickoff de taxonomía (día 1)",
+        "S2 · Split 70/15/15 + test congelado + modelo/juez sobre validation (90/95/<30)",
+        "S3 · Examen final sobre test (1ª corrida honesta) + cómputo real con IT",
+        "S4 · Tablero + informe de cierre con 3 escenarios + registro de riesgos"
+      ]]
+    ].map(([r,t,five])=>`<div class="card">${[`<h3 style="margin-bottom:12px;"><span class="role ${r}" style="font-size:.82rem;">${r==='esi'?'ESI':'EDI'}</span> <span style="font-size:.95rem;margin-left:6px;">${t.split(' · ')[1]||''}</span></h3>`].concat(five.map((f,i)=>`<div style="display:flex;gap:10px;margin:9px 0;font-size:.85rem;color:var(--muted);"><span class="step-no">${i+1}</span><span>${f}</span></div>`)).join('')}</div>`).join('')}
+  </div>
+  <div class="callout"><span class="ico">👥</span><div><b>Contrapartes del cliente en el mes (habilitan y validan):</b> <b style="color:var(--good);">RDB</b>: staging (S0) · contrato de salida día 2 (S1) · lectura DB día 7 (S2) · cruce/datasets v1 (S3) · docs y calidad (S4) &nbsp;·&nbsp; <b style="color:var(--bad);">IT</b>: muestra+cuenta antes del día 1 (S0 🔒) · lectura DB (S2 🔒) · cómputo real (S3) · docs (S4) &nbsp;·&nbsp; <b style="color:var(--acc);">SP</b>: alcance acotado (S0) · esquema (S1) · hitos 10/20/28 · firma (S4).</div></div>
+</div>`,
+/* 10 COORDINACIONES + DECISIONES */
+()=>`<div>
+  <div class="kicker">Coordinaciones y decisiones</div>
+  <h2 style="margin-bottom:14px;">Qué esperamos del cliente y qué decidimos nosotros</h2>
+  <p class="label" style="margin-top:4px;color:var(--warn);">Coordinaciones con el cliente (habilitación, no bloqueadores)</p>
+  <table class="table">
+    <tr><th>Coordinación</th><th>Rol</th><th>Fecha límite</th><th>Si se demora</th></tr>
+    ${[
+      ["Muestra + acceso de lectura (o export PST)","IT + CMP","Antes del día 1 🔒","Se corre el cronograma (pesimista); no se arranca sobre supuestos"],
+      ["Sesiones de negocio: taxonomía (d1) y etiquetado doble (d3–9)","AF ×2","Días 1–9","El golden set se atrasa y el test congelado se mueve"],
+      ["Permiso de lectura de la fuente corporativa","RDB + IT","Días 7–10 🔒","El cruce se valida con datos de prueba, no reales"],
+      ["Aprobación CMP de residencia local / tratamiento PII","CMP","S0 · días 16–20","No se cierra el dimensionamiento final"]
+    ].map(([c,r,f,s])=>`<tr><td style="font-size:.8rem;">${c}</td><td class="ap" style="white-space:nowrap;">${r}</td><td class="ap" style="white-space:nowrap;">${f}</td><td style="font-size:.76rem;color:var(--muted);">${s}</td></tr>`).join('')}
+  </table>
+  <p class="label" style="margin-top:16px;color:var(--acc);">Decisiones abiertas internas con responsable</p>
+  <table class="table">
+    <tr><th>#</th><th>Decisión</th><th>Responsable</th><th>Se resuelve</th></tr>
+    ${[
+      ["Qwen2.5-7B vs 14B (clasificación/extracción) + familia potente para informes","EDI","Con la muestra real (S1)"],
+      ["Campos de la fuente corporativa disponibles para el cruce","ESI + RDB","Días 7–10 (S2)"],
+      ["Perfil exacto de solo lectura de Exchange","ESI","S0 con IT"],
+      ["Rutas de salida (CSV/vista BI) y periodicidad","ESI + RDB","Contrato de salida, día 2"],
+      ["Volumen real de cómputo y almacenamiento local","ESI + EDI + IT","Días 16–20 (S3)"]
+    ].map(([d,r,s],i)=>`<tr><td class="ap">${i+1}</td><td style="font-size:.8rem;">${d}</td><td class="ap" style="white-space:nowrap;">${r}</td><td style="font-size:.78rem;color:var(--muted);">${s}</td></tr>`).join('')}
+  </table>
+</div>`,
+/* 11 CIERRE */
+()=>`<div style="display:flex;flex-direction:column;justify-content:center;height:100%;">
+  <div class="kicker">Cierre</div>
+  <h2 style="margin-bottom:10px;">Cómo se gobierna el <span class="grad">mes de despliegue</span></h2>
+  <div class="grid cols3" style="margin-top:22px;">
+    ${[
+      ["Hitos de revisión internos","Día 10 · día 20 · día 28, con el registro de riesgos vivo. No son gates de venta: son el control del equipo sobre el propio plan."],
+      ["Nadie valida lo que produce","ESI y EDI entregan; AF/RDB/IT validan. El test congelado está custodiado por labIA: la validación final es la primera corrida honesta."],
+      ["Regla del arranque","Las 4 semanas corren desde la firma del alcance. Si la muestra no está al kickoff, se replanifica (pesimista); nunca se comprime la validación para compensar."]
+    ].map(([t,d])=>`<div class="card hover"><h3 style="color:var(--acc);margin-bottom:8px;">${t}</h3><p class="body" style="font-size:.86rem;">${d}</p></div>`).join('')}
+  </div>
+  <div class="callout"><span class="ico">→</span><div><b>Próximos pasos concretos:</b> kickoff interno de asignación ESI/EDI por componente · pedido formal a IT de la muestra con la spec de solo lectura · reserva de sesiones con el cliente (kickoff día 1 · contrato día 2 · etiquetado días 3–9).</div></div>
+</div>`
+];
+
+/* deck engine */
+const deck = document.getElementById('deck');
+let cur = 0;
+function build(){
+  const st = document.getElementById('stepper');
+  st.innerHTML = SLIDES.map(()=>`<span></span>`).join('');
+}
+function render(idx){
+  const s = document.createElement('section');
+  s.className = 'slide';
+  s.innerHTML = SLIDES[idx]();
+  deck.appendChild(s);
+  requestAnimationFrame(()=>{ s.classList.add('active'); });
+  return s;
+}
+function nav(d){
+  const next = cur + d;
+  if(next<0||next>=SLIDES.length) return;
+  cur = next;
+  deck.innerHTML='';
+  render(cur);
+  updateUI();
+}
+function updateUI(){
+  document.getElementById('counter').textContent = `${cur+1} / ${SLIDES.length}`;
+  document.getElementById('railFill').style.width = ((cur+1)/SLIDES.length*100)+'%';
+  const dots=[...document.querySelectorAll('#stepper span')];
+  dots.forEach((d,i)=> d.classList.toggle('on', i<=cur));
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' ') nav(1);
+  else if(e.key==='ArrowLeft') nav(-1);
+  else if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+});
+build();
+render(0);
+updateUI();
+</script>
+</body>
+</html>

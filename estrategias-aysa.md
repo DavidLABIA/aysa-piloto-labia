@@ -1,7 +1,7 @@
 # Aysa — Casilla de Email de Clasificación
 ## Propuesta de Solución IA: Procesamiento de ~23.000 Emails y Validación de Identidad de Cuentas
 
-> **Proyecto independiente** de cualquier otro proyecto (GAIL / MultiOCR).
+> **Proyecto independiente** de cualquier otro proyecto del equipo: datos, pipeline y espacio de trabajo propios.
 > **Audiencia:** Dirección, CIO/CTO, Marketing y Operaciones.
 > **Estructura:** Business case de 8 secciones + 5 estrategias + dashboard comparativo.
 > **Moneda:** todos los valores en **pesos argentinos (ARS)**, referencia **1 USD ≈ ARS 1.500** (a ajustar con la paridad del día). Se indica el equivalente USD donde aplica.

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4 propuestas MVP — Aysa · labIA</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  :root { --accent:#0e7c86; --accent2:#0b4f56; --muted:#5b6b7b; --line:#e2e8ee; --soft:#f5f8fa;
+          --ok:#1f8f5b; --warn:#b98a12; --bad:#c1483f; --card:#ffffff; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    color:#1c2733; line-height:1.62; font-size:14px; background:#eef2f5; }
+  .wrap { max-width:1080px; margin:0 auto; padding:28px 24px 80px; }
+  .clasif { display:inline-block; background:var(--accent); color:#fff; font-size:11px; font-weight:700;
+    letter-spacing:.5px; padding:4px 14px; border-radius:20px; }
+  header.card { background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%); color:#fff;
+    border-radius:14px; padding:26px 30px; margin:14px 0 22px; }
+  header.card h1 { font-size:24px; font-weight:700; letter-spacing:-.4px; margin-bottom:8px; color:#fff; }
+  header.card p { font-size:13.5px; opacity:.95; max-width:860px; }
+  header.card p em { color:#cfeef1; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .chip { background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.3); padding:5px 12px;
+    border-radius:20px; font-size:12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px 22px;
+    margin:16px 0; box-shadow:0 1px 3px rgba(16,42,67,.06); }
+  h2 { font-size:18px; color:var(--accent2); margin:0 0 12px; }
+  h3 { font-size:15px; color:var(--accent2); margin:16px 0 8px; }
+  p { margin:0 0 10px; }
+  ul,ol { margin:2px 0 12px 22px; }
+  li { margin-bottom:5px; }
+  .grid { display:grid; gap:14px; }
+  .g2 { grid-template-columns:1fr 1fr; }
+  .g3 { grid-template-columns:1fr 1fr 1fr; }
+  @media(max-width:840px){ .g2,.g3 { grid-template-columns:1fr; } }
+  .mini { background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .mini h4 { font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .big { font-size:30px; font-weight:800; color:var(--accent); line-height:1; }
+  .ok { color:var(--ok); font-weight:700; }
+  .warn { color:var(--warn); font-weight:700; }
+  .bad { color:var(--bad); font-weight:700; }
+  table { border-collapse:collapse; width:100%; font-size:12.8px; margin:12px 0; }
+  th { background:var(--accent); color:#fff; text-align:left; padding:9px 10px; font-weight:600; }
+  td { border:1px solid var(--line); padding:9px 10px; vertical-align:top; }
+  tr:nth-child(even) td { background:var(--soft); }
+  .tblwrap { overflow-x:auto; border-radius:10px; border:1px solid var(--line); }
+  code, pre.code { background:#eef2f5; padding:1px 5px; border-radius:4px; font-size:.92em; color:var(--accent2);
+    font-family:'SF Mono',Menlo,Consolas,monospace; }
+  pre.code { background:#0f1722; color:#d7e2ef; border-radius:8px; padding:14px 16px; margin:10px 0 14px;
+    overflow-x:auto; font-size:12.3px; line-height:1.5; }
+  pre.code code { background:transparent; padding:0; color:inherit; font-size:inherit; }
+  blockquote { background:var(--soft); border-left:3px solid var(--accent); padding:10px 16px; margin:12px 0 14px;
+    border-radius:3px; }
+  .tag { display:inline-block; padding:3px 10px; border-radius:14px; font-size:11px; font-weight:700; margin-right:6px; }
+  .tag-a { background:#e0f2ef; color:#0c6;  }
+  .tag-b { background:#e3edff; color:#1e5fbf; }
+  .tag-c { background:#fdf0dc; color:#8a5b00; }
+  .tag-d { background:#fae3e1; color:#a12e26; }
+  .tabs { display:flex; gap:6px; flex-wrap:wrap; margin:18px 0 0; position:sticky; top:0; background:#eef2f5;
+    padding:8px 0 10px; z-index:5; }
+  .tabbtn { border:1px solid var(--line); background:#fff; color:var(--accent2); padding:9px 16px; border-radius:24px;
+    cursor:pointer; font-size:13px; font-weight:600; transition:all .15s; }
+  .tabbtn:hover { border-color:var(--accent); }
+  .tabbtn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .prop { display:none; }
+  .prop.active { display:block; animation:fade .2s ease; }
+  @keyframes fade { from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+  .rec { background:#eaf7f0; border:1px solid #bfe7d2; border-radius:12px; padding:18px 20px; margin:16px 0; }
+  .rec h2 { color:var(--ok); }
+  .qa { border-left:3px solid var(--line); padding:4px 0 4px 14px; margin:10px 0; }
+  .qa b { color:var(--accent2); }
+  .risk { border-left:3px solid var(--warn); padding:4px 0 4px 14px; margin:8px 0; font-size:13px; }
+  .foot { color:var(--muted); font-size:12px; margin-top:30px; text-align:center; }
+  .kicker { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-weight:700;
+    margin-bottom:6px; }
+  .num { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%;
+    background:var(--accent); color:#fff; font-weight:800; font-size:16px; margin-right:10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="card">
+  <div class="clasif">Confidencial · Uso interno labIA · No compartir con el cliente</div>
+  <h1>4 propuestas para el despliegue del MVP — Aysa · Calidad de Datos de Contacto</h1>
+  <p>Cada propuesta surge de la <strong>investigación de proyectos similares</strong> (banco on-premise, triage HIPAA, cascadas SLM, golden set). Todas mantienen las reglas intocables: <em>la validación no se comprime; nadie valida lo que produce; el test congelado queda bajo custodia; evidencia 100% bloqueante; todo local en la VPN; la decisión final es del área.</em></p>
+  <div class="chips">
+    <span class="chip">Base 4 semanas</span>
+    <span class="chip">Qwen2.5-7B/14B self-host</span>
+    <span class="chip">5 métricas de gate</span>
+    <span class="chip">Pipeline 8 capas · C1–C10</span>
+    <span class="chip">Roles: ESI · EDI · AF · RDB · IT · CMP · SP</span>
+  </div>
+</header>
+
+<!-- NAV -->
+<div class="tabs" id="tabs">
+  <button class="tabbtn active" data-tab="cmp">Comparativa</button>
+  <button class="tabbtn" data-tab="arq">Arquitectura</button>
+  <button class="tabbtn" data-tab="a"><span class="tag tag-a">A</span> Base endurecido</button>
+  <button class="tabbtn" data-tab="b"><span class="tag tag-b">B</span> Evidencia compuesta</button>
+  <button class="tabbtn" data-tab="c"><span class="tag tag-c">C</span> Examen irrompible</button>
+  <button class="tabbtn" data-tab="d"><span class="tag tag-d">D</span> Fast-track 3 sem</button>
+  <button class="tabbtn" data-tab="rec">Recomendación</button>
+  <button class="tabbtn" data-tab="dec">Decisiones</button>
+</div>
+
+<!-- ============ COMPARATIVA ============ -->
+<section class="prop active" id="p-cmp">
+  <div class="card">
+    <span class="kicker">Todo en una tabla</span>
+    <h2>Comparativa de las 4 propuestas</h2>
+    <div class="tblwrap">
+      <table>
+        <thead>
+          <tr><th></th><th>A · Base endurecido</th><th>B · Evidencia compuesta</th><th>C · Examen irrompible</th><th>D · Fast-track 3 sem</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Duración base</strong></td><td>4 semanas</td><td>4 semanas</td><td>4 sem (pesimista 5)</td><td><strong>3 semanas</strong></td></tr>
+          <tr><td><strong>Escenarios</strong></td><td>3 / 4 / 6</td><td>3 / 4 / 6</td><td>3 / 4 / 5</td><td>3 / 3 / 6</td></tr>
+          <tr><td><strong>Criterio de ruteo (cola humana)</strong></td><td>Confianza cruda del modelo</td><td><strong>Score compuesto 40/40/20</strong> versionado</td><td>Confianza cruda + adjudicación explícita</td><td>Confianza cruda (mínimo viable)</td></tr>
+          <tr><td><strong>Golden set</strong></td><td>~300</td><td>~300</td><td><strong>400–500</strong> + freeze con hash + kappa por clase</td><td>~250 (piso aceptable)</td></tr>
+          <tr><td><strong>Campañas en ventana</strong></td><td>2–3</td><td>2–3</td><td>2</td><td>2 (más acotado)</td></tr>
+          <tr><td><strong>Modelo</strong></td><td>Qwen2.5-7B/14B</td><td>Qwen2.5 + <strong>evaluar Qwen3</strong> en validation</td><td>Qwen2.5-7B/14B</td><td>Qwen2.5-7B (menor viable)</td></tr>
+          <tr><td><strong>Esfuerzo EDI extra</strong></td><td>Bajo (M1–M9)</td><td>Medio (pesos + versionado)</td><td>Medio-Alto (etiquetado + freeze)</td><td>Bajo (reuso plantillas)</td></tr>
+          <tr><td><strong>Horas de negocio etiquetando</strong></td><td>~40–70 h</td><td>~40–70 h</td><td><strong>~60–100 h</strong></td><td>~30–50 h</td></tr>
+          <tr><td><strong>Dependencia de habilitaciones</strong></td><td>D1 antes del día 1</td><td>D1 antes del día 1</td><td>D1 + 2 personas negocio días 1–9</td><td><strong>Muy alta</strong>: todo antes de D1, EWS directo</td></tr>
+          <tr><td><strong>Riesgo principal</strong></td><td>Derivación alta (28–30%)</td><td>Más variables a calibrar en ventana corta</td><td>Más horas de negocio</td><td>Acceso no llega → vuelve a A</td></tr>
+          <tr><td><strong>Para qué stakeholder</strong></td><td>El que valora seguridad sin tocar nada</td><td>El que valora control fino (calidad/BI)</td><td>El que prevé objeciones de auditoría</td><td>El que exige señal en 3 semanas</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:12px"><strong>Fuente de la palanca de cada una:</strong> A → Email-Triage, GIGAGPU, 94spec/Encord · B → afras23 (40/40/20), SYJ (gate en código) · C → Robylon (300–600), 94spec (freeze tamper-evident) · D → GIGAGPU (plantillas), BootLabs (integrar con lo existente). Detalle completo en <code>research-proyectos-similares-aysa.md</code>.</p>
+  </div>
+  <div class="card">
+    <h3>Lo que todas comparten (intocable)</h3>
+    <div class="grid g3">
+      <div class="mini"><h4>Validación</h4><p>Nunca se comprime. Doble etiquetado, test congelado, 5 métricas idénticas.</p></div>
+      <div class="mini"><h4>Evidencia</h4><p>Cruce determinístico contra la fuente corporativa. 100% bloqueante por email.</p></div>
+      <div class="mini"><h4>Infraestructura</h4><p>Todo local en la VPN. Cloud no se reabre. Decisión final del área.</p></div>
+      <div class="mini"><h4>Rol de la herramienta</h4><p>Clasifica, extrae, cruza y evidencia. No decide, no corrige la fuente.</p></div>
+      <div class="mini"><h4>Gate</h4><p>Go/no-go día 28 con 3 escenarios y kill criteria. Firma del Sponsor.</p></div>
+      <div class="mini"><h4>Operación</h4><p>Traspaso al área de datos/BI con documentación versionada v1.0.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ARQUITECTURA ============ -->
+<section class="prop" id="p-arq">
+  <div class="card">
+    <span class="kicker">Sustrato técnico común a las 4 propuestas</span>
+    <h2>Arquitectura, herramientas y plataformas</h2>
+    <p>Las cuatro propuestas montan sobre la <strong>misma tubería de 8 capas</strong> y los <strong>mismos 10 componentes (C1–C10)</strong> definidos en <code>arquitectura-labia-aysa.md</code>. Lo que cambia entre propuestas es <strong>qué módulos se agregan</strong> (se detalla en cada pestaña), no el esqueleto.</p>
+    <h3>Pipeline de referencia (8 capas)</h3>
+    <pre class="code"><code> CASILLA EXCHANGE ON-PREM (red Ley 25.326)
+   │  EWS/Graph — cuenta de servicio SOLO LECTURA (mínimo privilegio) · o importe PST (plan B)
+   ▼
+ [C1–C4 · INGESTA]              conector + PST + dedupe (ItemId+SHA-256) + staging append-only
+   ▼
+ [C5 · FILTRO DETERMINÍSTICO]   reglas de código SIN IA: OOO · bounces · spam · vacíos
+   ▼
+ [C6 · CLASIFICACIÓN + EXTRACCIÓN IA]  LLM self-host · schema estricto JSON · prompt por campo
+   │      campos ausentes = null · JSON inválido → rechazo → revisión (nunca se persiste mal formado)
+   ▼
+ [JUEZ · 2º PASE]               coherencia + formato sobre zona gris (~30%) → DUDOSO → cola humana
+   ▼
+ [C7 · NORMALIZACIÓN]           trim · mayúsculas · sin tildes · formatos cuenta/documento versionados
+   ▼
+ [C8 · CRUCE DETERMINÍSTICO]    JOIN contra fuente corporativa (solo lectura) → Coincide/No coincide/Revisión
+   ▼
+ [C9–C10 · SALIDAS + TABLERO]   vista seg_campana (contrato BI) + evidencia por fila + dashboard
+   ▼
+ [LOG DE AUDITORÍA]             append-only · versiones modelo/prompt/regla · firma humana del cierre</code></pre>
+  </div>
+
+  <div class="card">
+    <h3>Componentes C1–C10: herramienta y plataforma de cada uno</h3>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>#</th><th>Componente</th><th>Herramienta / plataforma concreta</th><th>Lenguaje / runtime</th></tr></thead>
+        <tbody>
+          <tr><td>C1</td><td>Conector Exchange</td><td>EWS con <code>exchangelib</code> (Python) o <code>ews-javascript-api</code> (Node); <strong>Graph API</strong> (<code>/users/{casilla}/messages</code> + paginación) si M365/híbrido; Basic Auth sobre TLS 1.2 u <strong>OAuth2</strong> según AD; cuenta de servicio sin login interactivo</td><td>Python 3.11+ / Node 18+</td></tr>
+          <tr><td>C2</td><td>Plan B PST</td><td><code>New-MailboxExportRequest</code> (Exchange PowerShell) → <code>.pst</code>; parser con <code>libpff</code>/<code>readpst</code> (Linux) o <code>extract-msg</code>/<code>mailparser</code></td><td>PowerShell + Python</td></tr>
+          <tr><td>C3</td><td>Dedupe + incremental</td><td><code>ItemId</code> + <code>SHA-256</code> (<code>hashlib</code>); cursor por <code>LastModifiedTime</code>/watermark; scheduler cron/APScheduler o el que IT opere (Task Scheduler / Airflow)</td><td>Python</td></tr>
+          <tr><td>C4</td><td>Staging append-only</td><td><strong>PostgreSQL 16</strong> (preferido) o <strong>SQL Server corporativo</strong>; tablas <code>stg_email</code>, <code>stg_adjunto</code>; checksum por relectura</td><td>SQL</td></tr>
+          <tr><td>C5</td><td>Filtro de ruido</td><td>Python: parseo de headers (<code>email</code>, <code>mailparser</code>) + regex OOO/bounces/spam/vacíos; <strong>sin IA</strong></td><td>Python</td></tr>
+          <tr><td>C6</td><td>Clasificación + extracción</td><td><strong>Qwen2.5-7B/14B-Instruct</strong> servido con <strong>vLLM</strong> (endpoint OpenAI-compatible) u <strong>Ollama</strong> dentro de la VPN; salida JSON forzada con <strong>Pydantic + Instructor/Outlines</strong>; cliente <code>openai</code> SDK apuntando al endpoint local</td><td>Python</td></tr>
+          <tr><td>—</td><td>Juez · 2º pase</td><td>Código (Pydantic/regex) + mismo LLM Qwen para coherencia; <strong>score compuesto en Python</strong> si se elige B</td><td>Python</td></tr>
+          <tr><td>C7</td><td>Normalización</td><td>Python <code>unicodedata</code> (sin tildes), <code>re</code>, <code>str</code>; tablas de versiones de reglas de cuenta/documento</td><td>Python</td></tr>
+          <tr><td>C8</td><td>Cruce determinístico</td><td>Stored procedure/vista SQL en <strong>PostgreSQL/SQL Server</strong>; JOIN con normalización; <strong>sin IA</strong>; registra <code>id_fila_que_valido</code></td><td>SQL</td></tr>
+          <tr><td>C9</td><td>Contrato de salida</td><td>Vista <code>seg_campana</code> + export <strong>CSV</strong>; o vista en la BI del cliente (<strong>Power BI / Tableau / Metabase</strong>)</td><td>SQL / BI</td></tr>
+          <tr><td>C10</td><td>Tablero de métricas</td><td><strong>FastAPI + HTML estático</strong> propio (huella mínima) o <strong>Streamlit/Metabase/Power BI</strong>; vistas leading/lagging</td><td>Python / BI</td></tr>
+          <tr><td>—</td><td>Log de auditoría</td><td>Tabla append-only + <strong>cadena de hash SHA-256 encadenada</strong>; <code>modelo_version</code>, <code>prompt_version</code>, <code>reglas_version</code>, <code>reviewer</code>, <code>reviewed_at</code></td><td>SQL</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Modelo de datos (staging de labIA)</h3>
+    <pre class="code"><code>-- Ingesta (C4)
+stg_email(email_id PK, item_id UNIQUE, hash sha256, remitente, asunto,
+          fecha_recibido, tamano, tiene_adjuntos, raw_path, created_at, processed_at)
+stg_adjunto(email_id FK, nombre_archivo, formato, tamano, path)
+
+-- Clasificación / extracción (C6)
+stg_extraccion(email_id FK, clase_pred, campana_pred, email, cuenta, nombre_apellido,
+               direccion, telefono, documento_y_tipo, relacion_titular, titular,
+               score, modelo_version, prompt_version, resultado_juez, created_at)
+
+-- Evidencia y decisión (C8)
+seg_decision(email_id, estado, motivo, id_fila_que_valido, reviewer, reviewed_at)
+
+-- Salida por campaña (C9)
+seg_campana(campana, estado, cuenta_id, email_id, fecha, evidencia)
+
+-- Auditoría (log)
+audit_log(id, ts, actor, evento, entidad, entidad_id, motivo,
+          modelo_version, prompt_version, reglas_version, hash_previo, hash_actual)</code></pre>
+  </div>
+
+  <div class="card">
+    <h3>Stack transversal (aplica a las 4)</h3>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Capa</th><th>Tecnología</th><th>Nota</th></tr></thead>
+        <tbody>
+          <tr><td>Lenguaje pipeline</td><td>Python 3.11+</td><td>conectar, filtrar, orquestar, validar schema</td></tr>
+          <tr><td>Lenguaje datos</td><td>SQL (PostgreSQL 16 o SQL Server)</td><td>cruce, evidencia, salidas</td></tr>
+          <tr><td>Runtime de modelo</td><td><strong>vLLM</strong> o <strong>Ollama</strong> self-host en VM Linux</td><td>endpoint OpenAI-compatible dentro de la VPN</td></tr>
+          <tr><td>Modelo</td><td><strong>Qwen2.5-7B/14B-Instruct</strong>; evaluar <strong>Qwen3 8B</strong> en B</td><td>licencia permisiva</td></tr>
+          <tr><td>Validación de schema</td><td>Pydantic v2 + Instructor/Outlines</td><td>JSON obligatorio; inválido → revisión</td></tr>
+          <tr><td>Empaquetado</td><td>Docker/Podman Compose o systemd nativo</td><td>según lo que IT opere</td></tr>
+          <tr><td>API / observabilidad</td><td>FastAPI (<code>/health</code>, <code>/ready</code>) + logs estructurados</td><td>readiness hace query real a la BD</td></tr>
+          <tr><td>Secretos</td><td>Gestor de TI (Vault / Key Vault / Credential Manager)</td><td><strong>nunca en código</strong></td></tr>
+          <tr><td>Scheduler</td><td>cron / APScheduler / Task Scheduler / Airflow</td><td>lo que IT prefiera operar</td></tr>
+          <tr><td>Versionado</td><td>Git (repo del cliente) + tabla de versiones prompt/regla/umbral</td><td>todo cambio auditado</td></tr>
+          <tr><td>Red</td><td>100% dentro de la VPN de Aysa</td><td>sin egress a nube (Ley 25.326)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Despliegue e infraestructura (huella mínima, referencia interna de labIA)</h3>
+    <pre class="code"><code>┌────────────────────────────── VPN AYSA ──────────────────────────────┐
+│  Exchange on-prem ──(EWS/Graph read-only)──►  VM Linux labIA          │
+│                                                 (Docker/Podman)       │
+│                                                  ├─ worker ingesta    │
+│                                                  ├─ vLLM/Ollama        │
+│                                                  │   Qwen2.5-7B/14B    │
+│                                                  ├─ FastAPI (/health)  │
+│                                                  └─ PostgreSQL 16      │
+│  Fuente corporativa ──(solo lectura, JOIN)──►  cruce (C8)            │
+│  Salidas: CSV / vista BI / dashboard  ──►  Datos · BI · Comercial     │
+└───────────────────────────────────────────────────────────────────────┘</code></pre>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Escenario</th><th>Cómputo self-host</th><th>DB</th><th>Costo mensual ref.</th></tr></thead>
+        <tbody>
+          <tr><td>Pesimista</td><td>2 vCPU · 8 GB RAM</td><td>100 GB · respaldo semanal</td><td>referencia baja</td></tr>
+          <tr><td>Base</td><td>4 vCPU · 16 GB RAM</td><td>300 GB · respaldo diario</td><td>referencia media</td></tr>
+          <tr><td>Optimista</td><td>8–16 vCPU · 32 GB RAM</td><td>1 TB · respaldo diario + PITR</td><td>referencia alta</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:10px"><strong>Calibración:</strong> los valores son referencia de despliegues on-prem previos de labIA ajustada a un caso de correo + bases pequeñas; se <strong>calibran con el cómputo real de la muestra</strong> en los días 16–20 (S3) y se confirman con IT. No se promete huella sin dato.</p>
+  </div>
+
+  <div class="card">
+    <h3>Qué construye cada track</h3>
+    <div class="grid g3">
+      <div class="mini"><h4>ESI · Integración</h4><p><strong>C1–C5, C7, C8, C9</strong> + despliegue local.<br>Python · EWS/Graph · SQL · Docker · scheduler.</p></div>
+      <div class="mini"><h4>EDI · Datos/IA</h4><p><strong>C6, juez, golden set, score compuesto (B), routing, calidad, tablero.</strong><br>Python · vLLM/Ollama · Qwen · Pydantic/Instructor · FastAPI/BI.</p></div>
+      <div class="mini"><h4>AF · RDB · IT (cliente)</h4><p><strong>Contraloría:</strong> taxonomía, golden set, cruce, formato, evidencia.<br>Planilla golden set · BI del cliente.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROPUESTA A ============ -->
+<section class="prop" id="p-a">
+  <div class="card">
+    <span class="kicker">Propuesta A</span>
+    <h2><span class="num">A</span> Plan base endurecido — el plan aprobado + mejoras de bajo costo</h2>
+    <blockquote><p><strong>Idea:</strong> el plan de 4 semanas tal como está aprobado (<code>plan-4-semanas-aysa.md</code>) con las mejoras que la investigación recomienda y <strong>ninguna</strong> que cambie plazo ni alcance.</p></blockquote>
+    <h3>Qué la motiva (fuente)</h3>
+    <ul>
+      <li><strong>Email-Triage</strong> → safe-default por etapa + cadena de hash a prueba de manipulación.</li>
+      <li><strong>GIGAGPU</strong> → cap de tokens y truncado de cuerpo para costo/latencia.</li>
+      <li><strong>94spec / Encord</strong> → acuerdo por clase, no solo kappa global.</li>
+      <li><strong>afras23</strong> → retry con backoff, circuit breaker y límite de costo.</li>
+    </ul>
+    <h3>Qué cambia respecto al plan base</h3>
+    <ul>
+      <li><strong>M4</strong> · Safe-default en cada etapa — una falla de IA nunca pierde el correo: va a revisión con motivo.</li>
+      <li><strong>M5</strong> · Límite diario de inferencia + registro de costo por corrida.</li>
+      <li><strong>M6</strong> · Resistencia a prompt injection → instrucciones adversariales a baja confianza + revisión.</li>
+      <li><strong>M8</strong> · Cap de tokens / truncado de cuerpo en clasificación y extracción.</li>
+      <li><strong>M1-lite</strong> · Manifest con hash al congelar el test (sin cambiar las 300 etiquetas).</li>
+      <li><strong>M3-lite</strong> · Reportar acuerdo por clase además del kappa global.</li>
+      <li><strong>M7</strong> · Cadena de hash encadenada en el log append-only (reaseguro Compliance).</li>
+    </ul>
+    <h3>Arquitectura, herramientas y plataformas (qué agrega sobre el sustrato común)</h3>
+    <ul>
+      <li><strong>Stack:</strong> pipeline C1–C10 completo, sin componentes nuevos. Python 3.11+ · PostgreSQL 16 (o SQL Server) · Qwen2.5-7B/14B vía vLLM/Ollama · Pydantic + Instructor · FastAPI para <code>/health</code> y <code>/ready</code>.</li>
+      <li><strong>M4 · safe-default:</strong> wrapper Python por etapa (<code>try/except</code> → estado <code>REVISION</code> con motivo); middleware que captura timeout/caída del endpoint y <em>deriva el correo, nunca lo descarta</em>.</li>
+      <li><strong>M5 · límite de costo:</strong> contador diario de tokens por <code>modelo_version</code> + tabla <code>usage_diario</code>; costo por corrida expuesto en el tablero.</li>
+      <li><strong>M6 · anti prompt-injection:</strong> detector de patrones ("ignorá tus instrucciones", <code>system:</code>, delimitadores) → <code>confianza=0</code> → cola; el prompt encierra el correo en delimitadores y prohíbe ejecutar su texto.</li>
+      <li><strong>M8 · cap de tokens:</strong> <code>max_tokens</code> fijo (~300) + truncado de cuerpo (~2.000–4.000 chars) antes de inferir.</li>
+      <li><strong>M1-lite · manifest:</strong> <code>goldenset_freeze.py</code> emite <code>manifest.json</code> con SHA-256 por registro + digest + seed; <code>verify</code> detecta cualquier cambio.</li>
+      <li><strong>M3-lite · acuerdo por clase:</strong> <code>agreement.py</code> calcula kappa global + kappa/alpha por etiqueta.</li>
+      <li><strong>M7 · log encadenado:</strong> <code>audit_log.hash_actual = SHA256(hash_previo + payload)</code> → cadena inmutable verificable.</li>
+      <li><strong>Plataformas nuevas:</strong> ninguna; todo en la VM Linux dentro de la VPN.</li>
+    </ul>
+    <div class="grid g2">
+      <div class="mini"><h4>Escenarios</h4><p>Base <span class="big">4</span> semanas<br>Optimista 3 · Pesimista 6</p></div>
+      <div class="mini"><h4>Métricas del gate</h4><p>Clasificación ≥ 90% · Extracción ≥ 95% · <strong>Derivación &lt; 30%</strong> · Cobertura ≥ 95% · Evidencia 100% (bloqueante)</p></div>
+    </div>
+    <div class="grid g2">
+      <div class="mini"><h4>Ventajas</h4><ul>
+        <li>Mínima fricción; todo (guión, deck, guía) ya está alineado.</li>
+        <li>Cambios aditivos y reversibles.</li>
+      </ul></div>
+      <div class="mini"><h4>Desventaja</h4><p>El riesgo de una <strong>derivación rozando 30%</strong> sigue ahí: la palanca de ruteo no se toca.</p></div>
+    </div>
+    <h3>Riesgos</h3>
+    <div class="risk">R-A1 · Derivación ≥ 30% en el gate (Med/Alto). Mitigación: score compuesto como mejora post-gate; se expresa en los 3 escenarios del informe.<br><em>Responsable: EDI + AF.</em></div>
+    <div class="risk">R-A2 · Objeción de auditoría "¿por qué creerle al número?" (Med/Med). Mitigación: M1-lite (hash del test) + M7 (log encadenado).<br><em>Responsable: labIA implementa · IT revisa.</em></div>
+    <div class="risk">R-A3 · Fallas intermitentes del self-host (Baj/Med). Mitigación: M4/M5.<br><em>Responsable: ESI.</em></div>
+    <h3>Qué decir en 3 líneas</h3>
+    <blockquote><p>«Es la propuesta que ya aprobaste sin sorpresas: mismo plazo, mismo alcance, mismas métricas. Solo le agregamos las protecciones de bajo costo que la industria comprobó —no perder correos si la IA falla, log a prueba de manipulación, control de costo. Elegí esta si tu prioridad es que nada se mueva de lo pactado.»</p></blockquote>
+    <h3>Preguntas probables</h3>
+    <div class="qa"><p><b>¿Por qué agregar mejoras ahora si el plan ya estaba cerrado?</b><br>Son aditivas y no cambian plazo ni alcance; eliminan objeciones de auditoría antes de que aparezcan. Si preferís el plan literal, se sacan sin impacto.</p></div>
+    <div class="qa"><p><b>¿Cuánto más trabajo es M4/M6?</b><br>Son funciones determinísticas dentro del pipeline (no IA): una tarde de ESI/EDI en S2. No tocan la validación.</p></div>
+    <h3>Bloqueadores / decisiones abiertas</h3>
+    <p>Los D1–D4 del plan. Decisión: ¿se incorporan M1-lite/M3-lite sí o no?</p>
+  </div>
+</section>
+
+<!-- ============ PROPUESTA B ============ -->
+<section class="prop" id="p-b">
+  <div class="card">
+    <span class="kicker">Propuesta B · Recomendada técnica</span>
+    <h2><span class="num">B</span> Evidencia compuesta — score de ruteo auditable</h2>
+    <blockquote><p><strong>Idea:</strong> idéntica a A, pero el criterio para derivar a cola humana pasa de "confianza cruda del modelo" a un <strong>score de evidencia compuesto</strong> y versionado, con gate en código (no en prompt).</p></blockquote>
+    <h3>Qué la motiva (fuente)</h3>
+    <ul>
+      <li><strong>afras23</strong> → score = completitud 40% + cumplimiento de schema 40% + señal cruda 20%; tres vías: confía / cola / rechaza.</li>
+      <li><strong>SYJ</strong> → el modelo no puede "hablarse" para pasar el gate; la aprobación la decide código.</li>
+    </ul>
+    <h3>El score compuesto (para el workbook)</h3>
+    <pre class="code"><code>score_evidencia = 0.40 × completitud_campos
+                + 0.40 × coherencia_formato
+                + 0.20 × señal_modelo</code></pre>
+    <ul>
+      <li><strong>completitud_campos</strong>: % de los campos clave (email/cuenta/nombre/doc/teléfono/titular) presentes y no <code>null</code>.</li>
+      <li><strong>coherencia_formato</strong>: formatos válidos (cuenta, documento, email, teléfono) — salida del juez (2º pase C6).</li>
+      <li><strong>señal_modelo</strong>: confianza normalizada del clasificador.</li>
+      <li><strong>Tres vías</strong>: score ≥ umbral_alto → dataset; umbral_medio ≤ score &lt; umbral_alto → <code>DUDOSO</code> (cola humana); score &lt; umbral_medio → revisión manual (probable ruido/inyección).</li>
+      <li>Pesos y umbrales los <strong>aprueba AF</strong> con criterio de negocio y se <strong>versionan</strong> por corrida.</li>
+    </ul>
+    <h3>Arquitectura, herramientas y plataformas (qué agrega sobre A)</h3>
+    <ul>
+      <li><strong>Módulo <code>scoring.py</code></strong> (Python determinístico, <strong>no IA</strong>): recibe la salida validada de C6 + el juez y emite <code>score_evidencia</code> + vía (<code>confía/cola/rechaza</code>).</li>
+      <li><strong>Tablas versionadas</strong> <code>score_pesos(...)</code> y <code>score_umbrales(...)</code>; cada corrida guarda <code>score_version</code> y <code>umbral_version</code>.</li>
+      <li><strong>Corte arquitectónico:</strong> el juez deja de decidir la derivación por <code>confianza</code> cruda; la decide el score <strong>fuera del LLM</strong> → la IA no puede "hablarse" para pasar el gate. El schema de C6 no cambia.</li>
+      <li><strong>Comparativa de modelo (opcional):</strong> mismo endpoint vLLM/Ollama con <code>qwen2.5:14b</code> y <code>qwen3:8b</code> sobre validation; respalda la decisión D1.</li>
+      <li><strong>Tablero:</strong> vista de distribución de vías por corrida (<code>% confía / % cola / % rechaza</code>) como métrica leading.</li>
+      <li><strong>Plataformas nuevas:</strong> ninguna; reutiliza runtime y BD.</li>
+    </ul>
+    <div class="grid g2">
+      <div class="mini"><h4>Escenarios</h4><p>Base <span class="big">4</span> semanas<br>Optimista 3 · Pesimista 6</p></div>
+      <div class="mini"><h4>Métricas</h4><p>Las 5 del plan + <strong>registro de vías por corrida</strong> (leading en tablero) · Derivación objetivo &lt; 30%</p></div>
+    </div>
+    <div class="grid g2">
+      <div class="mini"><h4>Ventajas</h4><ul>
+        <li>Deriva menos casos si los campos salen bien → caso de negocio más fuerte.</li>
+        <li>Ajuste fino <strong>sin tocar prompts</strong> (menos riesgo de tocar el test indirectamente).</li>
+        <li>Cada derivación es explicable: "fue a revisión porque completó 40% de campos y no matchó formato".</li>
+      </ul></div>
+      <div class="mini"><h4>Desventajas</h4><ul>
+        <li>Más piezas que calibrar en la ventana corta.</li>
+        <li>Requiere que AF entienda el score (sesión extra de 30–45 min en S2).</li>
+      </ul></div>
+    </div>
+    <h3>Riesgos</h3>
+    <div class="risk">R-B1 · Pesos mal calibrados → derivación rara en el examen final (Med/Med). Mitigación: pesos por defecto de la literatura + calibración en validation, nunca en test.<br><em>Responsable: EDI.</em></div>
+    <div class="risk">R-B2 · AF no internaliza el score (Baj/Med). Mitigación: sesión de definición con ejemplos reales de la muestra.<br><em>Responsable: EDI + AF.</em></div>
+    <div class="risk">R-B3 · Doble variable (modelo + score) en 4 semanas (Baj/Baj). Mitigación: el score es determinístico y de bajo riesgo.<br><em>Responsable: ESI/EDI.</em></div>
+    <h3>Qué decir en 3 líneas</h3>
+    <blockquote><p>«El cambio más importante que proponemos: decidir "a quién se le cree" con un score de evidencia compuesto —campos completos, formato coherente, señal del modelo— en vez de solo la confianza. Es el patrón de los sistemas maduros para que la máquina no "se hable sola" y para que cada derivación sea explicable. No cambia el plazo ni el examen: baja la tasa de derivación y fortalece el caso de negocio.»</p></blockquote>
+    <h3>Preguntas probables</h3>
+    <div class="qa"><p><b>¿Esto no agrega complejidad en 4 semanas?</b><br>Es una función determinística de ~15 líneas dentro del juez que ya existe; el test congelado y las 5 métricas no cambian. La complejidad está en la explicación, no en la implementación.</p></div>
+    <div class="qa"><p><b>¿Quién decide los pesos?</b><br>AF aprueba con criterio de negocio (qué campos importan); EDI implementa; se versionan y quedan auditables por corrida.</p></div>
+    <div class="qa"><p><b>¿Y si el score empeora la derivación?</b><br>Se calibra sobre validation con plan de cierre documentado (igual que hoy con umbrales); nunca se toca el test.</p></div>
+    <h3>Bloqueadores / decisiones abiertas</h3>
+    <p>D1–D4 + definir <strong>pesos por defecto</strong> y <strong>umbrales iniciales</strong> (propuesta EDI en kickoff, días 1–2). <em>Responsable: EDI + AF.</em></p>
+  </div>
+</section>
+
+<!-- ============ PROPUESTA C ============ -->
+<section class="prop" id="p-c">
+  <div class="card">
+    <span class="kicker">Propuesta C</span>
+    <h2><span class="num">C</span> Examen irrompible — blindaje máximo del resultado</h2>
+    <blockquote><p><strong>Idea:</strong> el plan A con un <strong>golden set más grande (400–500)</strong>, freeze a prueba de manipulación (hash-manifest), adjudicación explícita de disputas y acuerdo reportado por clase — el examen más difícil de impugnar.</p></blockquote>
+    <h3>Qué la motiva (fuente)</h3>
+    <ul>
+      <li><strong>Robylon</strong> → rango bueno 300–600; ~300 es el piso; 400–500 da celdas finas por campaña; etiquetar el <em>resultado</em> (actions/facts/escalation), no la redacción.</li>
+      <li><strong>94spec</strong> → agreement antes de la métrica; adjudicación que se niega a adivinar; manifest con hash por registro + digest + seed.</li>
+      <li><strong>Encord / Koji</strong> → reportar alpha y acuerdo por etiqueta, no solo el global.</li>
+    </ul>
+    <h3>Qué cambia respecto a A</h3>
+    <ul>
+      <li>Golden set de <strong>400–500</strong> (min. 50 por clase/campaña), solapamiento medible 15–20% entre etiquetadores (en vez de doblar todo).</li>
+      <li><strong>Etiquetar el resultado, no la redacción</strong> → planilla del golden set actualizada.</li>
+      <li><strong>Freeze con manifest</strong>: cada registro con hash + digest del set + seed del split; copia sellada a Compliance/IT.</li>
+      <li><strong>Adjudicación explícita</strong>: ninguna disputa por mayoría simple; cada una lleva etiqueta final + motivo + quién decidió; sin resolver, el set no se produce.</li>
+      <li><strong>Acuerdo por clase</strong> (kappa global + kappa/alpha por etiqueta); clase &lt; 0.8 → se reescribe la definición y se re-etiqueta esa franja.</li>
+      <li>Post-gate: <strong>honeypots</strong> (3–10% de control) + re-muestreo trimestral en operación.</li>
+    </ul>
+    <h3>Arquitectura, herramientas y plataformas (qué agrega sobre A)</h3>
+    <ul>
+      <li><strong>Herramienta <code>goldenset</code></strong> (script Python/plantilla): modos <code>sample</code>, <code>agreement</code> (kappa + <strong>Krippendorff alpha</strong> por clase con IC bootstrap), <code>adjudicate</code>, <code>freeze</code> (manifest SHA-256 + digest + seed) y <code>verify</code>.</li>
+      <li><strong>Planilla ampliada:</strong> <code>etiqueta_1/2/final</code>, <code>motivo_adjudicacion</code>, <code>decisor</code>, <code>hash_registro</code>; solapamiento 15–20%, resto con muestreo de QA.</li>
+      <li><strong>Freeze tamper-evident:</strong> <code>manifest.json</code> + copia sellada a Compliance/IT; el pipeline <strong>solo acepta el test si <code>verify</code> da OK</strong> (edición → aborta).</li>
+      <li><strong>Acuerdo por clase:</strong> si <code>alpha_clase &lt; 0.8</code> → reescritura de definición (AF) y re-etiquetado <em>antes</em> de correr el modelo.</li>
+      <li><strong>Honeypots (post-gate):</strong> 3–10% de ítems de control en la cola; mide el acierto del operador humano.</li>
+      <li><strong>Tamaño:</strong> 400–500 registros; el cómputo de IA no cambia, solo más horas de etiquetado.</li>
+      <li><strong>Plataformas nuevas:</strong> ninguna; planilla + scripts versionados sobre Git/BD.</li>
+    </ul>
+    <div class="grid g2">
+      <div class="mini"><h4>Escenarios</h4><p>Base <span class="big">4</span> semanas<br>Optimista 3 (EWS + etiquetado asistido) · <strong>Pesimista 5</strong></p></div>
+      <div class="mini"><h4>Métricas</h4><p>Las 5 del plan, medidas sobre un set con mayor volumen por celda → <strong>más confiables</strong>. Ningún umbral se relaja.</p></div>
+    </div>
+    <div class="grid g2">
+      <div class="mini"><h4>Ventajas</h4><ul>
+        <li>Señal por campaña más sólida.</li>
+        <li>La impugnación ("cocinaron el número") queda imposible técnicamente.</li>
+        <li>El techo del acuerdo se mide por clase y se ataca la causa (definición) antes del modelo.</li>
+      </ul></div>
+      <div class="mini"><h4>Desventajas</h4><ul>
+        <li>Más horas de negocio (60–100 h en ~9 días).</li>
+        <li>Pesimista pasa a 5; exige 2 personas del negocio con foco en primeros días.</li>
+      </ul></div>
+    </div>
+    <h3>Riesgos</h3>
+    <div class="risk">R-C1 · El negocio no dispone de las horas (Med/Alto). Mitigación: training día 1 (1 h), sesiones de 2 h en días 3–9 en paralelo al track técnico.<br><em>Responsable: AF + SP.</em></div>
+    <div class="risk">R-C2 · Una clase con acuerdo &lt; 0.8 fuerza re-etiquetado (Med/Med). Mitigación: regla 8/10 en días 1–3 ataca la definición antes.<br><em>Responsable: AF.</em></div>
+    <div class="risk">R-C3 · El freeze con hash sobrecarga la operación (Baj/Baj). Es una planilla/script, no infraestructura.<br><em>Responsable: EDI.</em></div>
+    <h3>Qué decir en 3 líneas</h3>
+    <blockquote><p>«Subimos el estándar del examen: más etiquetas por campaña, congelamiento a prueba de manipulación y acuerdo medido por clase —el techo del modelo se mide y se ataca la causa antes de correrlo. Si alguien tiene que creerle al número sin poder auditarlo, esta es la propuesta. El costo es más horas del negocio en los primeros 9 días y un pesimista de 5 semanas.»</p></blockquote>
+    <h3>Preguntas probables</h3>
+    <div class="qa"><p><b>¿No alcanza con 300?</b><br>El rango de referencia es 300–600; 300 funciona cuando una campaña domina. Con 2–3 campañas diferenciadas, 400–500 da celdas confiables por campaña.</p></div>
+    <div class="qa"><p><b>¿Quién paga las horas de etiquetado?</b><br>Son del negocio (costo real de Aysa), como el plan ya pide; acá son más, pero con solapamiento medible (15–20%) en vez de duplicar todo, y dejan la base de operación (honeypots).</p></div>
+    <div class="qa"><p><b>¿Esto retrasa la entrega?</b><br>Base sigue 4; pesimista pasa de 6 a 5 porque el solapamiento medible deroga el doble-etiquetado total.</p></div>
+    <h3>Bloqueadores / decisiones abiertas</h3>
+    <p>D1–D4 (D2 con más horas) + definir <strong>tamaño exacto por campaña</strong> con AF en S0/S1 · confirmar <strong>disponibilidad de las 2 personas</strong> días 1–9.</p>
+  </div>
+</section>
+
+<!-- ============ PROPUESTA D ============ -->
+<section class="prop" id="p-d">
+  <div class="card">
+    <span class="kicker">Propuesta D</span>
+    <h2><span class="num">D</span> Fast-track 3 semanas — señal antes que todo</h2>
+    <blockquote><p><strong>Idea:</strong> hacer de la variante "optimista 3 semanas" la <strong>base</strong>: reuso de componentes, golden set mínimo aceptable (~250), alcance reducido a 2 campañas y dependencia fuerte de que IT/Compliance habiliten <strong>todo antes del día 1</strong> — si no, cae automáticamente a la propuesta A.</p></blockquote>
+    <h3>Qué la motiva (fuente)</h3>
+    <ul>
+      <li><strong>GIGAGPU</strong> → plantillas de clasificación precargadas.</li>
+      <li><strong>SYJ</strong> → reconexión con backoff + readiness checks para operar sin fricción.</li>
+      <li><strong>BootLabs</strong> → integrar con la herramienta que el cliente ya usa → caja de conexión pre-armada.</li>
+      <li><strong>94spec</strong> → un set de 250 está dentro del rango funcional con celdas gruesas (piso ~200).</li>
+    </ul>
+    <h3>Cómo se llega a 3 semanas (sin tocar la validación)</h3>
+    <ul>
+      <li><strong>S0 estricto (condición):</strong> IT entrega <strong>EWS directo</strong> (no PST) + muestra real <strong>antes del día 1</strong>; Compliance firma el esquema en el kickoff; sesiones del negocio reservadas días 1–9.</li>
+      <li><strong>Reuso labIA:</strong> prompts por campo v0 precargados, conector EWS/Graph parametrizado (config + validación, no desarrollo), planilla golden set con validaciones lista.</li>
+      <li><strong>Golden set 250</strong> (piso del rango aceptable) con 1 campaña dominante.</li>
+      <li><strong>Alcance:</strong> 2 campañas priorizadas (no 3). Parallelización máxima desde el día 1.</li>
+    </ul>
+    <h3>Arquitectura, herramientas y plataformas (qué cambia sobre A)</h3>
+    <ul>
+      <li><strong>Conector EWS/Graph pre-armado:</strong> C1 no se desarrolla en S1 → se entrega parametrizado (config de casilla, credencial, carpeta) y solo se valida contra la muestra; PST (C2) queda como respaldo, no como plan A.</li>
+      <li><strong>Templates de prompts v0 precargados:</strong> los prompts por campo (schema Pydantic + plantillas) llegan escritos; S2 solo calibra.</li>
+      <li><strong>Planilla golden set pre-validada:</strong> validaciones de formato + script de acuerdo ya cargados; objetivo 250.</li>
+      <li><strong>Runtime idéntico</strong> (vLLM/Ollama + Qwen2.5): la diferencia es operativa (todo precargado), no arquitectónica.</li>
+      <li><strong>Condición dura:</strong> EWS directo + muestra antes del día 1; si no, reversa a A (kill criterion días 1–3).</li>
+      <li><strong>Plataformas nuevas:</strong> ninguna; el ahorro viene del reuso.</li>
+    </ul>
+    <div class="grid g2">
+      <div class="mini"><h4>Escenarios</h4><p>Base <span class="big">3</span> semanas<br>Optimista 3 · Pesimista 6 (→ reversa a A)</p></div>
+      <div class="mini"><h4>Métricas</h4><p>Las 5 del plan — el examen se comprime en <strong>tamaño</strong>, no en calidad: misma doble etiqueta en el solapamiento medible, mismo test congelado (más chico).</p></div>
+    </div>
+    <div class="grid g2">
+      <div class="mini"><h4>Ventajas</h4><ul>
+        <li>La "primera señal" en 3 semanas (arma comercial de cierre).</li>
+        <li>Máxima economía de recursos; reuso = menos errores de integración nuevos.</li>
+      </ul></div>
+      <div class="mini"><h4>Desventajas</h4><ul>
+        <li>Holgura muy corta para re-etiquetar si una clase queda &lt; 0.8.</li>
+        <li>Señal por campaña más gruesa; dependencia altísima de IT/Compliance.</li>
+      </ul></div>
+    </div>
+    <h3>Riesgos</h3>
+    <div class="risk">R-D1 · Cualquier demora de S0 mata la propuesta (Med/Alto). Mitigación: kill criterion de acceso en días 1–3 → reversa automática a A.<br><em>Responsable: Sponsor + IT.</em></div>
+    <div class="risk">R-D2 · Test congelado chico → señal menos granular (Med/Med). Mitigación: acuerdo por clase + re-muestreo enfocado.<br><em>Responsable: EDI + AF.</em></div>
+    <div class="risk">R-D3 · "3 semanas" suena a menos calidad (Med/Med). Mitigación: hablar siempre de "mismo examen, ventana comprimida por habilitación temprana y reuso".<br><em>Responsable: liderazgo labIA.</em></div>
+    <h3>Qué decir en 3 líneas</h3>
+    <blockquote><p>«Si IT y Compliance confirman hoy mismo la muestra y el acceso directo, podemos cerrar el examen en 3 semanas —no recortando validación, sino arrancando con todo listo y reutilizando los componentes que ya tenemos. Si no llega a tiempo, volvemos a la propuesta A sin perder nada. Es la apuesta por la señal más rápida.»</p></blockquote>
+    <h3>Preguntas probables</h3>
+    <div class="qa"><p><b>¿3 semanas alcanzan para el golden set?</b><br>250 etiquetas con sesiones reservadas días 1–9 y doble etiqueta en el solapamiento medible; el test se congela día 8–9 y el examen corre en la semana 3. Está en el rango inferior reportado como aceptable (piso absoluto ~200).</p></div>
+    <div class="qa"><p><b>¿Y si IT no llega?</b><br>Kill criterion explícito: no arrancamos sobre supuestos; pasamos a A. D es un condicional con reversa automática, no un compromiso ciego.</p></div>
+    <div class="qa"><p><b>¿Qué se pierde contra A?</b><br>Cobertura: 2 campañas en vez de 2–3 y un test más chico. Se gana: señal una semana antes.</p></div>
+    <h3>Bloqueadores / decisiones abiertas (críticos)</h3>
+    <p>D1 (muestra + EWS) <strong>antes del día 1</strong> · disponibilidad 2 personas días 1–9 · D3 adelantado (días 7–10). Decisión: Sponsor prioriza «señal en 3 semanas» sobre «cobertura y holgura».</p>
+  </div>
+</section>
+
+<!-- ============ RECOMENDACIÓN ============ -->
+<section class="prop" id="p-rec">
+  <div class="rec">
+    <span class="kicker">Recomendación del equipo</span>
+    <h2>Combinación recomendada: B + C — con D como variante condicional</h2>
+    <p><strong>"B (evidencia compuesta) como palanca de ruteo + C (examen irrompible) como blindaje, en ventana de 4 semanas (base), con D como variante si IT/Compliance confirman habilitaciones antes del día 1."</strong></p>
+  </div>
+  <div class="card">
+    <h3>Por qué esta combinación</h3>
+    <div class="grid g2">
+      <div class="mini"><h4>De A mantenemos</h4><p>4 semanas base, 5 métricas, rol idéntico, cero nube, pipeline de 8 capas. Todo lo aprobado sigue vigente.</p></div>
+      <div class="mini"><h4>De B tomamos</h4><p>El <strong>score de evidencia compuesto</strong>: mayor impacto con menor costo (función determinística dentro del juez), mejora el caso de negocio (menor derivación) y hace cada decisión explicable.</p></div>
+      <div class="mini"><h4>De C tomamos</h4><p>El <strong>blindaje del examen</strong>: freeze con hash-manifest + adjudicación explícita + acuerdo por clase. A costo de más horas de etiquetado, elimina la única objeción que puede tumbar la demo: «¿tu número de dónde sale?».</p></div>
+      <div class="mini"><h4>D queda como variante</h4><p>Si el Sponsor quiere señal en 3 semanas e IT/Compliance confirman, se ejecuta D <strong>con el score compuesto y el freeze-hash ya incluidos</strong> (no se abandonan por acelerar).</p></div>
+    </div>
+    <h3>Qué NO cambia con B+C</h3>
+    <ul>
+      <li>Roles (ESI/EDI/AF/RDB/IT/CMP/SP) y los 4 bloques semana a semana.</li>
+      <li>Contrato de salida en el kickoff · pre-arranque S0 · operación en marcha.</li>
+      <li>Kill criteria y el gate del día 28.</li>
+    </ul>
+    <h3>Impacto en documentos</h3>
+    <p>El <strong>workbook</strong> se escribe sobre B+C (con D como anexo condicional). <code>plan-4-semanas-aysa.md</code>, <code>roadmap-rol-semana-aysa.md</code>, el deck y el guión se actualizan con la sección del score compuesto y del freeze-hash al confirmarse la propuesta.</p>
+  </div>
+  <div class="card">
+    <h3>Registro de riesgos de la decisión</h3>
+    <table>
+      <thead><tr><th>Riesgo</th><th>Prob/Imp</th><th>Mitigación</th><th>Responsable</th></tr></thead>
+      <tbody>
+        <tr><td>B+C+D suena a "mucha complejidad en 4 semanas"</td><td>Med/Med</td><td>La demo presenta B+C como 2 adiciones aisladas (score + freeze); D como variante condicional reversible</td><td>labIA (liderazgo)</td></tr>
+        <tr><td>Horas de etiquetado del negocio subestiman (C)</td><td>Med/Alto</td><td>Entrenar día 1 · sesiones de 2 h días 3–9 · solapamiento medible 15–20% · no doble-etiquetado total</td><td>AF + SP</td></tr>
+        <tr><td>Score mal calibrado en la ventana (B)</td><td>Med/Med</td><td>Pesos por defecto + calibración en validation; nunca en test; plan de cierre documentado</td><td>EDI</td></tr>
+        <tr><td>D incapaz de arrancar (acceso)</td><td>Med/Alto</td><td>Kill criterion días 1–3 → reversa automática a A</td><td>Sponsor + IT</td></tr>
+        <tr><td>Test con 400+ etiquetas exige re-etiquetado y pesimista 5</td><td>Med/Baj</td><td>Regla 8/10 en días 1–3 ataca la definición antes</td><td>AF</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ DECISIONES ============ -->
+<section class="prop" id="p-dec">
+  <div class="card">
+    <span class="kicker">Antes de escribir el workbook</span>
+    <h2>Decisiones abiertas</h2>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>#</th><th>Decisión</th><th>Responsable</th><th>Para qué</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Elegir propuesta</strong>: A / B / C / B+C (recomendada) / D</td><td>labIA + Sponsor</td><td>Escribir el workbook sobre la base correcta</td></tr>
+          <tr><td>2</td><td>Tamaño del golden set: ~300 (A/B/D) vs 400–500 (C)</td><td>AF + EDI</td><td>Dimensionar sesiones y bloqueador D2</td></tr>
+          <tr><td>3</td><td>Si B: pesos y umbrales iniciales del score</td><td>EDI (propone) + AF (aprueba)</td><td>Tarea 2.3 del workbook</td></tr>
+          <tr><td>4</td><td>Si C: freeze-hash sobre el test (script/planilla)</td><td>EDI</td><td>Tarea 2.1 del workbook</td></tr>
+          <tr><td>5</td><td>Si D: confirmación de EWS + muestra con IT antes del día 1</td><td>IT + CMP + Sponsor</td><td>Condición de entrada del fast-track</td></tr>
+          <tr><td>6</td><td>Post-gate: honeypots + re-muestreo trimestral en operación</td><td>AF + EDI + RDB</td><td>Sección "operación en marcha" del workbook</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:12px"><strong>Dependencia:</strong> el <strong>workbook de 4 semanas</strong> se construye sobre la decisión de la fila 1. Si no hay señal contraria, se escribe sobre <strong>B+C con D como anexo condicional</strong>.</p>
+  </div>
+  <div class="card">
+    <h3>Kill criteria (vigentes en cualquier propuesta)</h3>
+    <ul>
+      <li>Desvío &gt; 6 semanas (o &gt; 5 en C).</li>
+      <li>Adopción &gt; 50% bajo lo previsto.</li>
+      <li>Precisión que no cierra ni con revisión.</li>
+      <li>Muestra/acceso nunca habilitados.</li>
+      <li>Costo operativo fuera de rango.</li>
+    </ul>
+    <p>Cierre con <strong>pérdida acotada al piloto</strong> y documentación del aprendizaje. La decisión final la toma el <strong>Sponsor de Aysa</strong> con el comité sobre los números del informe.</p>
+  </div>
+</section>
+
+<div class="foot">Referencia: <code>propuestas-mvp-aysa.md</code> · <code>research-proyectos-similares-aysa.md</code> · labIA · Concentrix — uso interno, no compartir con el cliente</div>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tabbtn');
+  const props = document.querySelectorAll('.prop');
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(b => b.classList.remove('active'));
+      props.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('p-' + btn.dataset.tab).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>

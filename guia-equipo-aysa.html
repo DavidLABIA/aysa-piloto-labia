@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Guía del equipo labIA · Aysa — Despliegue del MVP</title>
+<style>
+  @page { size:A4; margin:16mm 15mm 18mm 15mm; }
+  * { box-sizing:border-box; }
+  body { font-family:'Segoe UI',-apple-system,Roboto,Helvetica,Arial,sans-serif; color:#16233a; margin:0; background:#fff; font-size:10.5pt; line-height:1.5; }
+  p { margin:6px 0; }
+  h1,h2,h3,h4 { font-weight:800; letter-spacing:-.3px; color:#0b1220; }
+  a { color:#0d7fa8; }
+  code { font-family:'SF Mono',Menlo,Consolas,monospace; font-size:.9em; background:#f0f5fb; border:1px solid #dce7f3; border-radius:4px; padding:1px 5px; color:#0d7fa8; }
+  ul,ol { margin:6px 0 6px 0; padding-left:22px; }
+  li { margin:4px 0; }
+
+  /* Portada */
+  .cover { page-break-after:always; display:flex; flex-direction:column; justify-content:center; min-height:246mm; }
+  .cover .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:1px; color:#0b1220; font-size:12pt; }
+  .cover .brand .dot { width:14px; height:14px; border-radius:4px; background:linear-gradient(135deg,#2fd0ff,#7d8bff); }
+  .cover .brand .sub { color:#5c7399; font-weight:600; }
+  .cover .rule { width:64px; height:5px; border-radius:3px; background:linear-gradient(135deg,#2fd0ff,#7d8bff); margin:22px 0 16px; }
+  .cover h1 { font-size:30pt; line-height:1.08; margin:0 0 8px; }
+  .cover h1 .grad { background:linear-gradient(135deg,#0b1220,#2fd0ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .cover .lead { font-size:12pt; color:#5c7399; max-width:150mm; }
+  .cover .meta { margin-top:34px; display:flex; gap:34px; }
+  .cover .meta .b { font-size:15pt; font-weight:800; color:#0b1220; }
+  .cover .meta .l { font-size:8pt; text-transform:uppercase; letter-spacing:1.4px; color:#5c7399; font-weight:700; }
+  .cover .conf { margin-top:28px; display:inline-block; border:1px solid #c3d6ea; background:#f0f5fb; color:#35506e; font-size:8.5pt; font-weight:700; border-radius:20px; padding:5px 14px; letter-spacing:1px; }
+
+  /* Editor */
+  .toc { page-break-after:always; }
+  .toc h2 { border-bottom:2px solid #0b1220; padding-bottom:8px; font-size:17pt; }
+  .toc ol { list-style:none; padding-left:0; margin-top:14px; }
+  .toc li { display:flex; gap:14px; align-items:baseline; border-bottom:1px dotted #c3d6ea; padding:7px 2px; font-size:10.5pt; }
+  .toc .n { font-weight:800; color:#0d7fa8; min-width:24px; }
+  .toc .pg { margin-left:auto; color:#5c7399; font-size:9.5pt; }
+
+  section.pg { page-break-before:always; }
+  section > h2 { font-size:17pt; margin:0 0 4px; display:flex; align-items:center; gap:12px; }
+  section > h2 .n { background:linear-gradient(135deg,#2fd0ff,#7d8bff); color:#fff; border-radius:8px; font-size:13pt; padding:4px 12px; }
+  .secintro { color:#5c7399; font-size:10pt; margin:6px 0 14px; }
+
+  h3 { font-size:12.5pt; margin:18px 0 6px; }
+  h4 { font-size:10.5pt; margin:12px 0 4px; }
+  .card { border:1px solid #dce7f3; border-left:4px solid #0d7fa8; border-radius:10px; padding:12px 14px; margin:12px 0; background:#f7fafd; }
+  .card.warn { border-left-color:#d99a1b; background:#fffaf0; }
+  .card.good { border-left-color:#1a9e6c; background:#f0faf6; }
+  .card.red { border-left-color:#d63a4e; background:#fff4f5; }
+  .card b { color:#0b1220; }
+
+  table { width:100%; border-collapse:collapse; margin:10px 0; font-size:8.8pt; }
+  th { background:#0b1220; color:#fff; text-align:left; font-size:7.6pt; text-transform:uppercase; letter-spacing:.8px; padding:7px 9px; }
+  td { border:1px solid #dce7f3; padding:7px 9px; vertical-align:top; }
+  tr:nth-child(even) td { background:#f7fafd; }
+  td.bold { font-weight:700; white-space:nowrap; }
+
+  .role { font-weight:800; font-size:8pt; letter-spacing:.5px; }
+  .rc-esi{color:#0d7fa8;} .rc-edi{color:#5a5fd0;} .rc-af{color:#b07a00;} .rc-rdb{color:#1a9e6c;} .rc-it{color:#d63a4e;} .rc-cmp{color:#8a4fd0;} .rc-sp{color:#0d7fa8;}
+
+  .pill { display:inline-block; font-size:7.6pt; font-weight:800; letter-spacing:.8px; border-radius:12px; padding:2px 10px; }
+  .p-s0{background:#fde8ea;color:#a02335;} .p-s1{background:#fff3d6;color:#8a6100;}
+  .p-s2{background:#e9e7fd;color:#4548b8;} .p-s3{background:#dff1fb;color:#0d5f88;}
+  .p-s4{background:#e2f6ef;color:#116b4c;}
+
+  .flow { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; }
+  .flow .step { background:#f0f5fb; border:1px solid #dce7f3; border-radius:8px; padding:5px 10px; font-size:8.6pt; font-weight:700; color:#16233a; }
+  .flow .step.hot { border-color:#0d7fa8; color:#0d7fa8; }
+  .flow .step.code { border-color:#1a9e6c; color:#1a9e6c; }
+  .flow .arr { color:#0d7fa8; font-weight:800; }
+
+  .good{color:#1a9e6c;font-weight:800;} .warn2{color:#b07a00;font-weight:800;} .bad{color:#d63a4e;font-weight:800;}
+  .muted{color:#5c7399;} .small{font-size:8.4pt;}
+  .check { color:#1a9e6c; font-weight:800; }
+  .pagefoot { display:none; }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="cover">
+  <div class="brand"><span class="dot"></span>labIA <span class="sub">· Concentrix · Aysa</span></div>
+  <div class="rule"></div>
+  <h1>Guía del equipo<br><span class="grad">Despliegue del MVP</span><br>Calidad de Datos de Contacto</h1>
+  <p class="lead">Documento operativo interno: cómo trabajamos en las 4 semanas del despliegue — quiénes somos, qué construimos, qué hace cada rol en cada semana, qué esperamos del cliente y cómo sabemos que quedó bien hecho.</p>
+  <div class="meta">
+    <div><div class="b">4 sem.</div><div class="l">Despliegue base</div></div>
+    <div><div class="b">10</div><div class="l">Componentes</div></div>
+    <div><div class="b">8</div><div class="l">Capas</div></div>
+    <div><div class="b">2</div><div class="l">Roles internos</div></div>
+    <div><div class="b">Local</div><div class="l">Sin nube</div></div>
+  </div>
+  <div class="conf">USO INTERNO DEL EQUIPO labIA — NO SE COMPARTE CON EL CLIENTE</div>
+</div>
+
+<!-- ÍNDICE -->
+<div class="toc">
+  <h2>Contenido</h2>
+  <ol>
+    <li><span class="n">1</span>Contexto y reglas de trabajo <span class="pg">1</span></li>
+    <li><span class="n">2</span>Roles: quién hace, quién valida <span class="pg">2</span></li>
+    <li><span class="n">3</span>Arquitectura: los 10 componentes en 8 capas <span class="pg">3</span></li>
+    <li><span class="n">4</span>Matriz resumen semana × rol <span class="pg">4</span></li>
+    <li><span class="n">5</span>Semana 0 · Pre-arranque <span class="pg">5</span></li>
+    <li><span class="n">6</span>Semana 1 · Baseline e ingesta <span class="pg">6</span></li>
+    <li><span class="n">7</span>Semana 2 · Golden set, modelo y juez <span class="pg">7</span></li>
+    <li><span class="n">8</span>Semana 3 · Cruce, examen final y datasets v1 <span class="pg">8</span></li>
+    <li><span class="n">9</span>Semana 4 · Lote, documentación y traspaso <span class="pg">9</span></li>
+    <li><span class="n">10</span>Coordinaciones con el cliente y decisiones abiertas <span class="pg">10</span></li>
+    <li><span class="n">11</span>Criterios de calidad (criterios de aceptación) <span class="pg">11</span></li>
+    <li><span class="n">12</span>Riesgos técnicos y mitigación <span class="pg">11</span></li>
+    <li><span class="n">13</span>Definición de "done" <span class="pg">12</span></li>
+    <li><span class="n">14</span>Próximos pasos <span class="pg">12</span></li>
+  </ol>
+</div>
+
+<!-- 1 CONTEXTO -->
+<section class="pg">
+  <h2><span class="n">1</span>Contexto y reglas de trabajo</h2>
+  <p class="secintro">Qué estamos desplegando, en qué condiciones y bajo qué reglas. Todo el equipo lee esto igual.</p>
+
+  <div class="card good"><b>Propósito del proyecto.</b> Aysa procesa campañas de comunicación con datos de contacto que llegan por correo. Construimos un pipeline que <b>sustenta, no decide</b>: lee una casilla de correo (solo lectura, dentro de la VPN), separa ruido de contenido útil, clasifica cada correo útil en 5 clases, extrae 8 campos de contacto, valida con un juez, cruza contra la base corporativa (evidencia determinística) y publica datasets por campaña con rastro de evidencia por fila.</div>
+
+  <div class="card red"><b>Decisión de infraestructura: LOCAL, SIN NUBE.</b> Todo corre dentro de la VPN de Aysa (modelo <code>Qwen2.5-7B/14B</code> self-host). Es un acuerdo cerrado con el cliente: no se vuelve a discutir, no hay DPA ni datos en la nube. Los datos nunca salen de la red (Ley 25.326).</div>
+
+  <h3>Reglas transversales (no negociables)</h3>
+  <ul>
+    <li><span class="good">Nadie valida lo que produce.</span> ESI/EDI entregan; AF/RDB/IT del cliente validan. Nadie es juez de su propio trabajo.</li>
+    <li><span class="good">Nunca se comprime la validación.</span> Se comprime el alcance (MVP con 2–3 campañas) y el calendario (paralelización); jamás la calidad del examen.</li>
+    <li><span class="good">Primera corrida honesta.</span> El test congelado queda bajo custodia de labIA, fuera de todo ajuste. La métrica final es la primera corrida sobre él: no hay tuning post-test.</li>
+    <li><span class="good">Nothing se corrige en origen.</span> Solamente lectura; la herramienta recomienda, el área decide y su decisión queda registrada.</li>
+  </ul>
+
+  <h3>Escenarios de duración</h3>
+  <table>
+    <tr><th>Escenario</th><th>Duración</th><th>Supuesto clave</th><th>Qué cambia</th></tr>
+    <tr><td class="bold">Base</td><td>4 semanas</td><td>Muestra y accesos a tiempo, kappa ≥ 0.8</td><td>Plan S0–S4 estándar</td></tr>
+    <tr><td class="bold">Optimista</td><td>3 semanas</td><td>EWS directo + golden set listo al día 1</td><td>Se adelantan S2/S3 (traslape de tareas)</td></tr>
+    <tr><td class="bold">Pesimista</td><td>6 semanas</td><td>Acceso de muestra demorado o re-etiquetado del golden set</td><td>Se corre el cronograma entero; nunca se acorta la validación</td></tr>
+  </table>
+  <div class="card"><b>Regla de oro del plazo:</b> el cronograma arranca cuando <b>D1 está disponible</b> (muestra + acceso de lectura). Si no está al kickoff, se replanifica: no se arranca sobre supuestos.</div>
+</section>
+
+<!-- 2 ROLES -->
+<section class="pg">
+  <h2><span class="n">2</span>Roles: quién hace, quién valida</h2>
+  <p class="secintro">Dos roles internos construyen; cuatro contrapartes del cliente habilitan y validan. Este no es un organigrama decorativo: es la columna vertebral de la integridad de la prueba.</p>
+
+  <h3>Equipo labIA (construyen)</h3>
+  <table>
+    <tr><th style="width:90px;">Rol</th><th>Foco</th><th>Qué produce</th><th>Quién lo valida</th></tr>
+    <tr>
+      <td class="role rc-esi">ESI</td>
+      <td>Integración y automatización</td>
+      <td>Conector Exchange, staging, filtro de ruido, normalización, cruce determinístico, contrato de salida y despliegue local (C1–C5, C7, C8, C9)</td>
+      <td>IT (accesos) · RDB (estructura/calidad) · AF (criterio de negocio)</td>
+    </tr>
+    <tr>
+      <td class="role rc-edi">EDI</td>
+      <td>Datos e IA</td>
+      <td>Prompts, modelo local, juez y umbrales, golden set y test congelado, model routing, calidad, tablero e informe (C6 + validación)</td>
+      <td>AF (contraloría del golden set y umbrales) · RDB (calidad de datos)</td>
+    </tr>
+  </table>
+
+  <h3>Contrapartes Aysa (habilitan y validan)</h3>
+  <table>
+    <tr><th style="width:90px;">Rol</th><th>Quién es</th><th>Qué aporta</th></tr>
+    <tr><td class="role rc-af">AF</td><td>Referente de negocio</td><td>Taxonomía (día 1), contrato de salida, doble etiquetado, contratoría de resultados, umbrales del juez</td></tr>
+    <tr><td class="role rc-rdb">RDB</td><td>Responsable de datos / BI</td><td>Formato de salida (día 2), lectura de la fuente corporativa, calidad del cruce y del dataset</td></tr>
+    <tr><td class="role rc-it">IT</td><td>Administra Exchange y la red</td><td>Muestra, cuenta de solo lectura, cómputo local, revisión de documentación</td></tr>
+    <tr><td class="role rc-cmp">CMP</td><td>Compliance / Legal</td><td>Tratamiento de PII (Ley 25.326), residencia local, esquema de datos</td></tr>
+    <tr><td class="role rc-sp">SP</td><td>Sponsor</td><td>Alcance acotado, kickoff, revisiones de hito 10/20/28, firma del cierre</td></tr>
+  </table>
+
+  <div class="card warn"><b>Regla de integridad en la práctica:</b> el EDI mide la precisión del modelo; el AF confirma esa medición contra el golden set. El ESI construye el cruce; el RDB valida las reglas y la evidencia. <b>La producción y la validación siempre son personas distintas.</b></div>
+
+  <div class="card"><b>Hitos de revisión internos labIA:</b> día 10 · día 20 · día 28, con el registro de riesgos vivo (responsable: liderazgo labIA). No son gates de venta: son el control del equipo sobre su propio plan.</div>
+</section>
+
+<!-- 3 ARQUITECTURA -->
+<section class="pg">
+  <h2><span class="n">3</span>Arquitectura: los 10 componentes en 8 capas</h2>
+  <p class="secintro">El patrón deriva del estándar interno de labIA (huella mínima, "piso en código" para lo exacto/auditable, IA para lo interpretativo, model routing). Vista de punta a punta:</p>
+
+  <div class="flow">
+    <span class="step hot">1 · Ingesta conector (C1–C4)</span> <span class="arr">→</span>
+    <span class="step code">2 · Filtro determinístico (C5)</span> <span class="arr">→</span>
+    <span class="step hot">3 · Clasificación + extracción IA (C6)</span> <span class="arr">→</span>
+    <span class="step hot">4 · Juez de validación</span> <span class="arr">→</span>
+    <span class="step code">5 · Normalización (C7)</span> <span class="arr">→</span>
+    <span class="step code">6 · Cruce determinístico (C8)</span> <span class="arr">→</span>
+    <span class="step code">7 · Salidas + tablero (C9–C10)</span> <span class="arr">→</span>
+    <span class="step code">8 · Log de auditoría</span>
+  </div>
+
+  <table>
+    <tr><th style="width:34px;">#</th><th>Componente</th><th>Tipo</th><th>Detalle técnico</th><th>Rol</th></tr>
+    <tr><td class="bold">C1</td><td>Conector Exchange</td><td>IA no</td><td>EWS watermark o Graph API, cuenta de servicio de mínimo privilegio (solo lectura)</td><td class="role rc-esi">ESI</td></tr>
+    <tr><td class="bold">C2</td><td>Plan B PST</td><td>IA no</td><td>Importación de histórico vía PST si IT no habilita conexión directa</td><td class="role rc-esi">ESI</td></tr>
+    <tr><td class="bold">C3</td><td>Dedupe + incremental</td><td>IA no</td><td>Dedupe por ItemId + SHA-256, cursor por watermark, idempotencia</td><td class="role rc-esi">ESI</td></tr>
+    <tr><td class="bold">C4</td><td>Staging append-only</td><td>IA no</td><td>stg_email / stg_adjunto; nunca se edita ni borra; checksum por fila</td><td class="role rc-esi">ESI</td></tr>
+    <tr><td class="bold">C5</td><td>Filtro determinístico</td><td>IA no</td><td>Reglas de código SIN IA: OOO, bounces, spam, vacíos</td><td class="role rc-esi">ESI</td></tr>
+    <tr><td class="bold">C6</td><td>Salida del dataset técnico</td><td>IA sí</td><td>Schema JSON estricto (5 clases + 8 campos + confianza + razón); null explícito</td><td class="role rc-edi">EDI</td></tr>
+    <tr><td class="bold">C7</td><td>Normalización</td><td>IA no</td><td>trim, mayúsculas, sin tildes, formatos de cuenta/documento versionados</td><td class="role rc-esi">ESI</td></tr>
+    <tr><td class="bold">C8</td><td>Cruce determinístico</td><td>IA no</td><td>JOIN contra fuente corporativa; evidencia Coincide / No coincide / Requiere revisión</td><td class="role rc-esi">ESI</td></tr>
+    <tr><td class="bold">C9</td><td>Contrato de salida</td><td>IA no</td><td>Esqueleto CSV/vista BI desde semana 1; formato firmado con BI el día 2</td><td class="role rc-esi">ESI</td></tr>
+    <tr><td class="bold">C10</td><td>Tablero de métricas</td><td>IA no</td><td>Leading (precisión, % derivación, tiempo/caso) + lagging (inconsistencias, datasets, horas liberadas)</td><td class="role rc-edi">EDI</td></tr>
+  </table>
+
+  <div class="card"><b>Qué queda en IA y qué queda en código:</b> IA clasifica/extrae texto y hace el 2º pase del juez sobre la zona gris (~30%). Código hace todo lo exacto y auditable: lectura, dedupe, filtro, normalización, cruce y auditoría. <b>El LLM sugiere, la regla confirma</b> — y el LLM solo ve los emails útiles + la zona gris.</div>
+  <div class="card"><b>Modelo local:</b> <code>Qwen2.5-7B/14B</code> self-host en la VPN para clasificación/extracción y juez; modelo potente solo para agrupaciones e informe de cierre (baja frecuencia). Sin muestra real no se dimensiona el cómputo: se estima en los días 16–20 de S3.</div>
+</section>
+
+<!-- 4 MATRIZ -->
+<section class="pg">
+  <h2><span class="n">4</span>Matriz resumen semana × rol</h2>
+  <p class="secintro">Vista de un vistazo. El detalle día a día está en las secciones 5–9.</p>
+
+  <table>
+    <tr>
+      <th style="width:110px;">Actividad clave</th>
+      <th><span class="pill p-s0">S0 · PRE-ARRANQUE</span></th>
+      <th><span class="pill p-s1">S1 · DÍAS 1–5</span></th>
+      <th><span class="pill p-s2">S2 · DÍAS 6–12</span></th>
+      <th><span class="pill p-s3">S3 · DÍAS 12–21</span></th>
+      <th><span class="pill p-s4">S4 · DÍAS 22–28</span></th>
+    </tr>
+    <tr>
+      <td class="role rc-esi">ESI</td>
+      <td>Entorno VPN + staging + pedido muestra/acceso + plan B PST</td>
+      <td>Conector con dedupe + filtro v1 + esqueleto salida</td>
+      <td>Normalización v1 + confirmar lectura DB <span class="muted">🔒</span></td>
+      <td>Cruce + 1er correo E2E + datasets v1</td>
+      <td>Lote acotado + docs técnica v1.0</td>
+    </tr>
+    <tr>
+      <td class="role rc-edi">EDI</td>
+      <td>Planilla golden set + templates de prompts</td>
+      <td>Exploratorio "% útil real" + kickoff taxonomía</td>
+      <td>Split 70/15/15 + test congelado + modelo/juez 90/95/&lt;30</td>
+      <td>Examen final sobre test + cómputo real con IT</td>
+      <td>Tablero + informe de cierre 3 escenarios</td>
+    </tr>
+    <tr>
+      <td class="role rc-af">AF</td>
+      <td>Valida muestra + aporta alcance</td>
+      <td>Taxonomía (d1) + arranque etiquetado (d3–5)</td>
+      <td>Etiquetado doble (d6–9) + umbrales</td>
+      <td>Contraloría del examen + cola humana</td>
+      <td>Valida datasets y traspaso</td>
+    </tr>
+    <tr>
+      <td class="role rc-rdb">RDB</td>
+      <td>Aprueba estructura de staging</td>
+      <td>Contrato de salida BI (d2)</td>
+      <td>Solicita lectura DB <span class="muted">🔒</span></td>
+      <td>Valida cruce + datasets v1</td>
+      <td>Aprueba docs y calidad final</td>
+    </tr>
+    <tr>
+      <td class="role rc-it">IT</td>
+      <td>Muestra + cuenta solo lectura + cómputo</td>
+      <td>—</td>
+      <td>Habilita lectura DB <span class="muted">🔒</span></td>
+      <td>Confirma cómputo real</td>
+      <td>Revisa documentación</td>
+    </tr>
+    <tr>
+      <td class="role rc-cmp">CMP / SP</td>
+      <td>CMP: PII · SP: alcance acotado</td>
+      <td>SP + RDB aprueban esquema</td>
+      <td>—</td>
+      <td>CMP: residencia local</td>
+      <td>SP: revisión día 28 + firma</td>
+    </tr>
+  </table>
+
+  <div class="card"><b>Cómo leer la matriz:</b> cada celda es la actividad nominal de cada rol en esa semana. El detalle con días, entregables y criterios de aceptación está en las pestañas por semana. Las celdas con <span class="muted">🔒</span> dependen de una habilitación de Aysa (ver sección 10).</div>
+</section>
+
+<!-- 5 S0 -->
+<section class="pg">
+  <h2><span class="n">5</span>Semana 0 · Pre-arranque en paralelo</h2>
+  <div class="card red"><b>Condición de entrada.</b> Ocurre en paralelo a la aprobación formal. El cronograma de 4 semanas arranca solo cuando la muestra y el acceso están al día 1. Si no, todo se mueve (escenario pesimista).</div>
+  <p class="secintro"><b>Objetivo:</b> dejar todo listo antes del día 1 — D1 disponible (muestra real + acceso de lectura) + entorno técnico de labIA preparado.</p>
+
+  <table>
+    <tr><th style="width:110px;">Rol</th><th>Actividad</th><th>Entregable</th><th>Aceptación de la tarea</th></tr>
+    <tr><td class="role rc-esi">ESI</td><td>Entorno en la VPN: carpeta de trabajo, tablas stg_email/stg_adjunto, acceso al repositorio corporativo</td><td>Entorno listo</td><td>RDB aprueba estructura · IT confirma VPN</td></tr>
+    <tr><td class="role rc-esi">ESI</td><td>Pedido formal a IT: muestra (~300–600 correos con años, campañas y ruido distintos) + spec del perfil de solo lectura</td><td>Pedido + spec de acceso</td><td>IT entrega muestra + cuenta <b>antes del día 1</b> 🔒</td></tr>
+    <tr><td class="role rc-esi">ESI</td><td>Importador PST como plan B (respaldo si IT no habilita conexión directa)</td><td>Importador batch</td><td>Nunca se borra/modifica la casilla</td></tr>
+    <tr><td class="role rc-edi">EDI</td><td>Planilla del golden set con validaciones + templates de prompts por campo v0</td><td>Planilla + templates v0</td><td>AF confirma campos de negocio</td></tr>
+    <tr><td class="role rc-esi">ESI + <span class="role rc-edi">EDI</span></td><td>Reservar sesiones: kickoff (d1), contrato de salida (d2), etiquetado doble (d3–9)</td><td>Calendario de sesiones</td><td>AF/RDB/IT confirman disponibilidad</td></tr>
+    <tr><td class="role rc-af">AF + SP</td><td>Definir alcance acotado: 2–3 campañas priorizadas para datasets de la ventana</td><td>Alcance firmado por SP</td><td>SP decide y firma</td></tr>
+    <tr><td class="role rc-cmp">CMP</td><td>Aprobar esquema de datos y tratamiento de PII (los datos no salen de la red)</td><td>Habilitación CMP 🔒</td><td>Aprobación registrada</td></tr>
+  </table>
+
+  <div class="card good"><b>Criterio de aceptación de S0:</b> al día 1 se puede <b>leer la muestra</b>, <b>cargar la planilla</b> del golden set y <b>sentarse con las áreas</b> sin permisos pendientes.</div>
+</section>
+
+<!-- 6 S1 -->
+<section class="pg">
+  <h2><span class="n">6</span>Semana 1 · Baseline e ingesta</h2>
+  <p class="secintro"><b>Objetivo:</b> confirmar el problema con datos reales, aprobar el esquema ("examen") e instalar el primer tramo del pipeline leyendo la casilla real.</p>
+
+  <table>
+    <tr><th style="width:110px;">Rol</th><th>Actividad</th><th>Días</th><th>Aceptación de la tarea</th></tr>
+    <tr>
+      <td class="role rc-edi">EDI + <span class="role rc-af">AF</span> + <span class="role rc-sp">SP</span></td>
+      <td>Kickoff (½ jornada): plan, roles, regla "nadie valida lo que produce". Workshop de taxonomía: definición operativa + 3–5 ejemplos reales + quién revisa. Regla de control: 8/10 de coincidencia entre dos personas del negocio; si no, se reescribe en la sesión</td>
+      <td>Día 1</td><td>Esquema de clasificación (5 clases) y extracción (8 campos) firmado por SP + RDB</td>
+    </tr>
+    <tr>
+      <td class="role rc-esi">ESI + <span class="role rc-rdb">RDB</span></td>
+      <td>Contrato de salida con BI: columnas, granularidad, periodicidad, publicación. Borrador configurable solo ante hallazgos de la muestra</td>
+      <td>Día 2</td><td>Contrato de salida firmado por BI</td>
+    </tr>
+    <tr>
+      <td class="role rc-edi">EDI</td>
+      <td>Exploratorio "lectura de la casilla": correos por año/mes (valida ~50K), campañas, % ruido, adjuntos, remitentes, incompletos → % útil real</td>
+      <td>Días 1–3</td><td>AF confirma con ojos de negocio</td>
+    </tr>
+    <tr>
+      <td class="role rc-esi">ESI</td>
+      <td>Conector EWS/Graph con incremental + dedupe (ItemId + SHA-256) y staging append-only; prueba con la muestra</td>
+      <td>Días 2–5</td><td>IT (accesos) + RDB (estructura)</td>
+    </tr>
+    <tr>
+      <td class="role rc-esi">ESI</td>
+      <td>Filtro determinístico de ruido SIN IA: OOO, bounces, spam, vacíos</td>
+      <td>Días 2–5</td><td>AF revisa detección sobre la muestra</td>
+    </tr>
+    <tr>
+      <td class="role rc-esi">ESI</td>
+      <td>Esqueleto de la salida del dataset (CSV / vista BI) según el contrato del día 2</td>
+      <td>Días 2–5</td><td>RDB aprueba estructura</td>
+    </tr>
+    <tr>
+      <td class="role rc-af">AF ×2 + <span class="role rc-edi">EDI</span></td>
+      <td>Arranque del doble etiquetado (~300 correos: clase + campos + confianza). EDI mide acuerdo entre etiquetadores</td>
+      <td>Días 3–5</td><td>Acuerdo medido (objetivo ≥ 0.8)</td>
+    </tr>
+  </table>
+
+  <div class="card good"><b>Criterio de aceptación de S1:</b> lote real leído <b>sin duplicados y sin tocar la casilla</b> · <b>≥ 90% del ruido conocido descartado</b> · documento con % útil real aprobado por el negocio.</div>
+</section>
+
+<!-- 7 S2 -->
+<section class="pg">
+  <h2><span class="n">7</span>Semana 2 · Golden set, modelo y juez</h2>
+  <p class="secintro"><b>Objetivo:</b> completar el "examen" con el negocio, lograr la primera clasificación/extracción automática y habilitar la evidencia (normalización + lectura de la fuente corporativa).</p>
+
+  <table>
+    <tr><th style="width:110px;">Rol</th><th>Actividad</th><th>Días</th><th>Aceptación de la tarea</th></tr>
+    <tr><td class="role rc-af">AF ×2 + <span class="role rc-edi">EDI</span></td><td>Completar el doble etiquetado (~300), resolver discrepancias con un tercero, medir acuerdo final</td><td>Días 6–9</td><td>kappa ≥ 0.8</td></tr>
+    <tr><td class="role rc-edi">EDI</td><td>División 70/15/15: el test queda congelado bajo custodia de labIA, fuera de todo ajuste</td><td>Días 8–9</td><td>Test congelado custodiado · AF como contraloría</td></tr>
+    <tr><td class="role rc-edi">EDI</td><td>Prompt por campo con JSON obligatorio (schema estricto) + primer modelo sobre train (Qwen2.5-7B/14B local) + revisión de errores con AF</td><td>Días 6–11</td><td>AF valida la descripción de campos · errores documentados</td></tr>
+    <tr><td class="role rc-edi">EDI + <span class="role rc-af">AF</span></td><td>Juez de coherencia (2º pase ~30% zona gris): si no confirma → DUDOSO → cola humana. Ajustar y versionar umbrales</td><td>Días 9–12</td><td>AF valida reglas y umbrales</td></tr>
+    <tr><td class="role rc-edi">EDI</td><td>Pipeline sobre validation: clasificación ≥ 90% · extracción ≥ 95% · derivación &lt; 30% (o gap documentado con plan de cierre)</td><td>Días 11–12</td><td>AF contra el golden set (no la palabra de labIA)</td></tr>
+    <tr><td class="role rc-esi">ESI</td><td>Reglas de normalización v1: trim, mayúsculas, sin tildes, formatos de cuenta/documento, versionadas</td><td>Días 7–10</td><td>RDB valida contra la fuente</td></tr>
+    <tr><td class="role rc-esi">ESI + <span class="role rc-rdb">RDB</span> + <span class="role rc-it">IT</span></td><td>Adelantar el permiso de lectura de la fuente corporativa (mínimo privilegio): RDB solicita el día 7, IT habilita, ESI confirma consulta real</td><td>Días 7–10</td><td>Consulta de lectura real funcionando al día 10 🔒 — insumo del cruce del día 12</td></tr>
+  </table>
+
+  <div class="card good"><b>Criterio de aceptación de S2:</b> kappa ≥ 0.8 · test congelado <b>fuera del alcance de todo ajuste</b> · 90/95/&lt;30 sobre validation o gap documentado con plan · <b>lectura DB funcionando al día 10</b>.</div>
+</section>
+
+<!-- 8 S3 -->
+<section class="pg">
+  <h2><span class="n">8</span>Semana 3 · Cruce, examen final y datasets v1</h2>
+  <p class="secintro"><b>Objetivo:</b> conectar la evidencia contra la fuente corporativa, medir el piloto contra el <b>set que nadie miró</b> y publicar los primeros datasets por campaña.</p>
+
+  <table>
+    <tr><th style="width:110px;">Rol</th><th>Actividad</th><th>Días</th><th>Aceptación de la tarea</th></tr>
+    <tr><td class="role rc-esi">ESI</td><td>Cruce determinístico contra la fuente (JOIN + normalización, sin IA): evidencia Coincide / No coincide / Requiere revisión + motivo + id_fila_que_valido</td><td>Días 12–15</td><td>RDB valida reglas · AF valida criterio de negocio</td></tr>
+    <tr><td class="role rc-esi">ESI + <span class="role rc-edi">EDI</span> + <span class="role rc-af">AF</span></td><td>Primer correo real de punta a punta: conector → filtro → clasificación → extracción → normalización → cruce → dataset</td><td>Día 15</td><td>AF + RDB confirman sentido de negocio</td></tr>
+    <tr><td class="role rc-edi">EDI</td><td>Examen final sobre el test congelado (nadie lo miró): clasificación, extracción, derivación, cobertura. <b>El resultado reportado es el de la primera corrida honesta</b></td><td>Días 16–18</td><td>AF hace contraloría contra las etiquetas de oro</td></tr>
+    <tr><td class="role rc-edi">EDI + <span class="role rc-af">AF</span></td><td>Revisión de la cola humana: ¿los casos dudosos son razonables? Tiempo por caso</td><td>Días 16–20</td><td>Tiempo por caso documentado</td></tr>
+    <tr><td class="role rc-edi">EDI + <span class="role rc-it">IT</span></td><td>Medir cómputo real de la muestra y dimensionar el despliegue local. Decisión con dato real, no por preferencia · CMP confirma residencia local</td><td>Días 16–20</td><td>IT confirma cómputo · CMP confirma residencia</td></tr>
+    <tr><td class="role rc-esi">ESI + <span class="role rc-rdb">RDB</span></td><td>Datasets v1 por campaña priorizada en formato firmado con evidencia por fila; ajustar desvíos del contrato</td><td>Días 18–21</td><td>RDB (formato) + AF (contenido)</td></tr>
+  </table>
+
+  <div class="card good"><b>Criterio de aceptación de S3:</b> un correo real recorrió todo el pipeline validado por el negocio · métricas finales sobre un set congelado · datasets v1 en formato firmado con evidencia por fila.</div>
+</section>
+
+<!-- 9 S4 -->
+<section class="pg">
+  <h2><span class="n">9</span>Semana 4 · Lote, documentación y traspaso</h2>
+  <p class="secintro"><b>Objetivo:</b> consolidar todo en entregables, cerrar los números y dejar el MVP desplegado y traspasado al negocio.</p>
+
+  <table>
+    <tr><th style="width:110px;">Rol</th><th>Actividad</th><th>Días</th><th>Aceptación de la tarea</th></tr>
+    <tr><td class="role rc-esi">ESI + <span class="role rc-edi">EDI</span></td><td>Procesar el lote acotado (correos útiles de las campañas priorizadas) con el pipeline final; datasets con evidencia por fila</td><td>Días 22–25</td><td>RDB (contenido) + AF (negocio)</td></tr>
+    <tr><td class="role rc-esi">ESI</td><td>Documentación técnica v1.0: conector, staging, filtro, normalización, cruce (versiones + checksums)</td><td>Días 23–26</td><td>IT + RDB</td></tr>
+    <tr><td class="role rc-edi">EDI</td><td>Documentación v1.0: esquema, prompts, juez y umbrales</td><td>Días 23–26</td><td>AF (criterios)</td></tr>
+    <tr><td class="role rc-edi">EDI</td><td>Tablero de actividades/métricas: leading (precisión, % derivación, tiempo/caso) + lagging (inconsistencias por origen, datasets, horas liberadas)</td><td>Días 23–26</td><td>RDB (calidad) + AF (contenido)</td></tr>
+    <tr><td class="role rc-edi">EDI</td><td>Informe de cierre con 3 escenarios (pesimista/base/optimista) anclados en el baseline medido + registro de riesgos actualizado</td><td>Días 26–28</td><td>AF + RDB</td></tr>
+    <tr><td class="role rc-esi">ESI + <span class="role rc-edi">EDI</span> + <span class="role rc-af">AF</span> + <span class="role rc-sp">SP</span></td><td>Show &amp; tell (datasets, tablero, evidencia, correo en vivo) · traspaso de la operación al área de datos/BI · firma del cierre · desvíos documentados si los hubo</td><td>Día 28</td><td>SP firma el cierre</td></tr>
+  </table>
+
+  <div class="card good"><b>Criterio de aceptación de S4:</b> lote procesado dentro de la ventana · documentación v1.0 aprobada y publicada · tablero publicado · traspaso documentado y firma del cierre.</div>
+</section>
+
+<!-- 10 COORDINACIONES -->
+<section class="pg">
+  <h2><span class="n">10</span>Coordinaciones con el cliente y decisiones abiertas</h2>
+  <p class="secintro">Las habilitaciones de Aysa se tratan como <b>coordinaciones</b> (con fecha y responsable), no como bloqueadores: el equipo las persigue activamente desde S0.</p>
+
+  <h3>Coordinaciones con Aysa</h3>
+  <table>
+    <tr><th>Coordinación</th><th>Rol del cliente</th><th>Fecha límite</th><th>Si se demora</th></tr>
+    <tr><td>Muestra representativa + acceso de lectura (o export PST)</td><td class="role rc-it">IT + <span class="role rc-cmp">CMP</span></td><td><b>Antes del día 1</b> 🔒</td><td>Se corre el cronograma (escenario pesimista); no se arranca sobre supuestos</td></tr>
+    <tr><td>Sesiones de negocio: taxonomía (d1) y etiquetado doble (d3–9)</td><td class="role rc-af">AF ×2</td><td>Días 1–9</td><td>El golden set se atrasa y el test congelado se mueve</td></tr>
+    <tr><td>Permiso de lectura de la fuente corporativa</td><td class="role rc-rdb">RDB + <span class="role rc-it">IT</span></td><td><b>Días 7–10</b> 🔒</td><td>El cruce se valida con datos de prueba, no reales</td></tr>
+    <tr><td>Aprobación CMP de residencia local / tratamiento de PII</td><td class="role rc-cmp">CMP</td><td>S0 · días 16–20</td><td>No se cierra el dimensionamiento final</td></tr>
+  </table>
+
+  <h3>Decisiones abiertas internas (con responsable)</h3>
+  <table>
+    <tr><th style="width:30px;">#</th><th>Decisión</th><th>Responsable</th><th>Se resuelve</th></tr>
+    <tr><td class="bold">1</td><td>Qwen2.5-7B vs 14B (clasificación/extracción) + familia potente para informes</td><td class="role rc-edi">EDI</td><td>Con la muestra real (S1)</td></tr>
+    <tr><td class="bold">2</td><td>Campos de la fuente corporativa disponibles para el cruce</td><td class="role rc-esi">ESI + <span class="role rc-rdb">RDB</span></td><td>Días 7–10 (S2)</td></tr>
+    <tr><td class="bold">3</td><td>Perfil exacto de solo lectura de Exchange (EWS impersonation vs Full Access vs Graph)</td><td class="role rc-esi">ESI</td><td>S0 con IT</td></tr>
+    <tr><td class="bold">4</td><td>Rutas de salida (CSV / vista BI) y periodicidad</td><td class="role rc-esi">ESI + <span class="role rc-rdb">RDB</span></td><td>Contrato de salida, día 2</td></tr>
+    <tr><td class="bold">5</td><td>Volumen real de cómputo y almacenamiento local</td><td class="role rc-esi">ESI + <span class="role rc-edi">EDI</span> + <span class="role rc-it">IT</span></td><td>Días 16–20 (S3), con cómputo real de la muestra</td></tr>
+  </table>
+</section>
+
+<!-- 11 CALIDAD -->
+<section class="pg">
+  <h2><span class="n">11</span>Criterios de calidad (criterios de aceptación)</h2>
+  <p class="secintro">Son los estándares de nuestro propio trabajo, declarados de antemano. No son un gate de venta hacia el cliente: son los criterios con los que el equipo cierra cada semana.</p>
+
+  <table>
+    <tr><th>Criterio</th><th>Referencia</th><th>Cómo se mide</th><th>Quién mide / quién valida</th></tr>
+    <tr><td class="bold">Precisión de clasificación</td><td>≥ 90%</td><td>Golden set de test (predicha vs oro)</td><td>EDI mide · AF valida</td></tr>
+    <tr><td class="bold">Precisión de extracción</td><td>≥ 95%</td><td>Campos correctos vs oro</td><td>EDI mide · AF valida</td></tr>
+    <tr><td class="bold">Tasa de derivación a revisión</td><td>&lt; 30%</td><td>% de casos a cola humana</td><td>EDI mide · AF valida</td></tr>
+    <tr><td class="bold">Cobertura por campaña</td><td>≥ 95%</td><td>Asignación correcta campaña/dataset</td><td>EDI mide · RDB valida</td></tr>
+    <tr><td class="bold">Evidencia por email</td><td>100% · bloqueante</td><td>Rastro de cruce en cada fila del dataset</td><td>RDB valida · bloqueante</td></tr>
+  </table>
+
+  <div class="card"><b>Regla de integridad:</b> el EDI produce los números; el AF/RDB los valida contra el golden set y los datos. El test congelado garantiza que la medición final es la de la primera corrida honesta — <b>no hay forma de "cocinar" el resultado</b>.</div>
+</section>
+
+<!-- 12 RIESGOS -->
+<section class="pg">
+  <h2><span class="n">12</span>Riesgos técnicos y mitigación</h2>
+  <p class="secintro">Registro interno del equipo, vivo en los hitos de revisión (días 10/20/28). Cada riesgo tiene mitigación concreta y responsable.</p>
+
+  <table>
+    <tr><th style="width:30px;">#</th><th>Riesgo</th><th>Prob</th><th>Imp</th><th>Mitigación (acción labIA)</th></tr>
+    <tr><td class="bold">T1</td><td>El LLM alucina campos de contacto</td><td>Med</td><td>Alto</td><td>Schema estricto + prompt por campo + juez + golden set; null explícito; JSON inválido → revisión</td></tr>
+    <tr><td class="bold">T2</td><td>Exchange on-prem migra a M365 / híbrido</td><td>Med</td><td>Med</td><td>Diseño agnóstico: mismo patrón con Graph API</td></tr>
+    <tr><td class="bold">T3</td><td>Dedupe insuficiente (emails idénticos legítimos o hash inestable)</td><td>Baja</td><td>Med</td><td>Dedupe por ItemId + SHA-256; processed_at y relectura trazable</td></tr>
+    <tr><td class="bold">T4</td><td>Normalización no calza con la fuente (formatos)</td><td>Med</td><td>Med</td><td>Versionado de reglas; validación con RDB; casos a "Requiere revisión"</td></tr>
+    <tr><td class="bold">T5</td><td>Acuerdo de etiquetado bajo 0.8 (golden set inconsistente)</td><td>Med</td><td>Med</td><td>Reescribir definiciones con el negocio y re-etiquetar la franja (pesimista)</td></tr>
+    <tr><td class="bold">T6</td><td>Test congelado contaminado (se usa para ajustar)</td><td>Baja</td><td>Alto</td><td>Custodia por labIA, fuera del set de ajuste; validación = 1ª corrida</td></tr>
+    <tr><td class="bold">T7</td><td>Cómputo local insuficiente para el volumen real</td><td>Med</td><td>Med</td><td>Dimensionar con cómputo real de la muestra (días 16–20) y reservar con IT</td></tr>
+    <tr><td class="bold">T8</td><td>Costo de IA recurrente fuera de rango</td><td>Med</td><td>Med</td><td>Model routing; IA solo sobre útiles + zona gris; escenarios anclados en baseline</td></tr>
+    <tr><td class="bold">T9</td><td>Permisos mal configurados (lectura/escritura indebida)</td><td>Baja</td><td>Alto</td><td>Solo lectura, cuenta de mínimo privilegio, secretos en gestor del cliente, revisión en hitos 10/20</td></tr>
+  </table>
+</section>
+
+<!-- 13 DONE -->
+<section class="pg">
+  <h2><span class="n">13</span>Definición de "done"</h2>
+  <p class="secintro">Cada componente se considera entregado solo si cumple todo esto (checklist para el kickoff interno y para cada hito).</p>
+
+  <table>
+    <tr><th style="width:30px;">#</th><th>Criterio de "done"</th><th>Dónde se verifica</th></tr>
+    <tr><td class="bold">1</td><td>Corre dentro de la VPN / entorno local del cliente, solo lectura donde corresponde</td><td>S0–S4 · validación IT</td></tr>
+    <tr><td class="bold">2</td><td>Tiene tests sobre data real o sintética marcada (filtro ≥ 90% ruido detectado, cruce contra casos conocidos)</td><td>S1/S3 · RDB/AF</td></tr>
+    <tr><td class="bold">3</td><td>Deja rastro: modelo_version / prompt_version / reglas versionadas / checksums</td><td>Cada entrega · ESI/EDI</td></tr>
+    <tr><td class="bold">4</td><td>Su salida alimenta el siguiente paso sin reprocesamiento manual</td><td>Pipeline E2E · S3</td></tr>
+    <tr><td class="bold">5</td><td>Validado por una persona distinta a quien lo desarrolló (regla "nadie valida lo que produce")</td><td>Cada entrega · AF/RDB/IT</td></tr>
+    <tr><td class="bold">6</td><td>No escribe ni modifica nada fuera de su área (staging/decisiones)</td><td>Revisión de permisos · S2</td></tr>
+  </table>
+</section>
+
+<!-- 14 PROXIMOS -->
+<section class="pg">
+  <h2><span class="n">14</span>Próximos pasos</h2>
+  <div class="card"><b>1 · Kickoff interno de ejecución.</b> Asignar ESI/EDI a los componentes C1–C10 · nombrar dueños de update del seguimiento · fijar los hitos de revisión internos (días 10/20/28).</div>
+  <div class="card"><b>2 · Preparación del pre-arranque (S0).</b> Entorno VPN, tablas staging, planilla golden set, templates de prompts · enviar a IT el pedido formal de muestra con la spec del perfil de solo lectura.</div>
+  <div class="card"><b>3 · Reservas con el cliente.</b> Kickoff (día 1) · contrato de salida BI (día 2) · sesiones de etiquetado (días 3–9) · pedido de permisos DB (día 7).</div>
+
+  <div class="card red"><b>Regla del arranque (recordatorio):</b> el cronograma de 4 semanas corre desde la firma del alcance. <b>Si la muestra no está al kickoff, se replanifica (pesimista) — nunca se comprime la validación para compensar.</b></div>
+</section>
+
+</body>
+</html>
